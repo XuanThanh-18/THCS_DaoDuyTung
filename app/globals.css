@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #F25C05;
+  --color-primary-dark: #d95204;
+  --color-secondary: #5A189A;
+  --color-secondary-dark: #4a1480;
+  --color-accent: #2BB673;
+  --color-accent-dark: #249961;
+  --color-background: #f9fafb;
+  
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-noto-serif), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+body {
+  @apply bg-background text-gray-900 font-sans;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply font-serif;
+}
