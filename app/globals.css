@@ -1,22 +1,40 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
 @theme {
-  --color-primary: #F25C05;
-  --color-primary-dark: #d95204;
-  --color-secondary: #5A189A;
-  --color-secondary-dark: #4a1480;
-  --color-accent: #2BB673;
-  --color-accent-dark: #249961;
-  --color-background: #f9fafb;
-  
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-noto-serif), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --color-primary: #a23a00;
+  --color-primary-container: #ca4b00;
+  --color-secondary: #7a3fbb;
+  --color-secondary-container: #bb7ffe;
+  --color-tertiary: #006a3e;
+  --color-surface: #f8f9ff;
+  --color-surface-container-low: #eff4ff;
+  --color-surface-container-high: #dee9fc;
+  --color-surface-container-highest: #d9e3f6;
+  --color-on-surface: #121c2a;
+  --color-on-surface-variant: #5a4137;
+  --color-outline-variant: #e3bfb2;
+
+  --font-headline: "Noto Serif", serif;
+  --font-body: "Inter", sans-serif;
 }
 
-body {
-  @apply bg-background text-gray-900 font-sans;
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-body;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-headline;
+  }
 }
 
-h1, h2, h3, h4, h5, h6 {
-  @apply font-serif;
+@layer components {
+  .editorial-shadow {
+    box-shadow: 0px 20px 40px rgba(18, 28, 42, 0.06);
+  }
+
+  .glass-nav {
+    @apply bg-white/90 backdrop-blur-md border-b border-slate-100;
+  }
 }

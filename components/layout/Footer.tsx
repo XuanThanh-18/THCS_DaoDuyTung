@@ -1,58 +1,65 @@
+import React from 'react';
 import Link from 'next/link';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Facebook, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
-export function Footer() {
+export default function Footer() {
   return (
-    <footer className="bg-secondary text-white mt-auto">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-secondary font-bold text-xl">
-                DT
-              </div>
-              <h2 className="font-serif font-bold text-xl leading-tight">
-                TRƯỜNG THCS
-                <br />
-                ĐÀO DUY TÙNG
-              </h2>
+    <footer className="bg-slate-900 text-white pt-20 pb-10 px-6 md:px-12">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="col-span-1 md:col-span-2">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center text-white font-bold text-2xl">
+              DDT
             </div>
-            <p className="text-gray-300 text-sm">
-              Nơi ươm mầm tài năng, chắp cánh ước mơ cho thế hệ trẻ.
-            </p>
+            <h3 className="font-headline font-bold text-2xl">THCS Đào Duy Tùng</h3>
           </div>
-          
-          <div>
-            <h3 className="font-serif font-bold text-lg mb-4 text-primary">Liên kết nhanh</h3>
-            <ul className="space-y-2">
-              <li><Link href="/about" className="text-gray-300 hover:text-white transition-colors">Giới thiệu</Link></li>
-              <li><Link href="/news" className="text-gray-300 hover:text-white transition-colors">Tin tức & Thông báo</Link></li>
-              <li><Link href="/events" className="text-gray-300 hover:text-white transition-colors">Sự kiện</Link></li>
-              <li><Link href="/documents" className="text-gray-300 hover:text-white transition-colors">Tài liệu biểu mẫu</Link></li>
-            </ul>
-          </div>
-          
-          <div>
-            <h3 className="font-serif font-bold text-lg mb-4 text-primary">Thông tin liên hệ</h3>
-            <ul className="space-y-4">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                <span className="text-gray-300 text-sm">Đường Đào Duy Tùng, Huyện Đông Anh, TP Hà Nội</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-accent shrink-0" />
-                <span className="text-gray-300 text-sm">024 1234 5678</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-accent shrink-0" />
-                <span className="text-gray-300 text-sm">c2daoduytung@hanoi.edu.vn</span>
-              </li>
-            </ul>
+          <p className="text-slate-400 max-w-sm mb-8 leading-relaxed">
+            Môi trường giáo dục tiên tiến, nơi mỗi học sinh đều là một cá thể đặc biệt và được tỏa sáng theo cách riêng của mình.
+          </p>
+          <div className="flex gap-4">
+            <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+              <Facebook size={20} />
+            </a>
+            <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
+              <Youtube size={20} />
+            </a>
           </div>
         </div>
-        
-        <div className="border-t border-white/10 mt-12 pt-8 text-center text-sm text-gray-400">
-          <p>&copy; {new Date().getFullYear()} Trường THCS Đào Duy Tùng. All rights reserved.</p>
+
+        <div>
+          <h4 className="font-bold mb-6 text-primary uppercase tracking-wider text-xs">Liên kết nhanh</h4>
+          <ul className="space-y-4 text-slate-400 text-sm">
+            <li><Link href="/about" className="hover:text-primary transition-colors">Giới thiệu</Link></li>
+            <li><Link href="/news" className="hover:text-primary transition-colors">Tin tức & Sự kiện</Link></li>
+            <li><Link href="/documents" className="hover:text-primary transition-colors">Thư viện tài liệu</Link></li>
+            <li><Link href="/contact" className="hover:text-primary transition-colors">Liên hệ</Link></li>
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="font-bold mb-6 text-primary uppercase tracking-wider text-xs">Thông tin liên hệ</h4>
+          <ul className="space-y-4 text-slate-400 text-sm">
+            <li className="flex gap-3">
+              <MapPin size={18} className="text-primary shrink-0" />
+              <span>Cổ Loa, Đông Anh, Hà Nội, Việt Nam</span>
+            </li>
+            <li className="flex gap-3">
+              <Mail size={18} className="text-primary shrink-0" />
+              <span>thcsdaoduytung@hanoi.edu.vn</span>
+            </li>
+            <li className="flex gap-3">
+              <Phone size={18} className="text-primary shrink-0" />
+              <span>Hotline: 024.3XXX.XXXX</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto pt-12 mt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-sm">
+        <span>© 2024 THCS Đào Duy Tùng. All rights reserved.</span>
+        <div className="flex gap-8">
+          <Link href="/terms" className="hover:text-primary">Điều khoản sử dụng</Link>
+          <Link href="/privacy" className="hover:text-primary">Chính sách bảo mật</Link>
         </div>
       </div>
     </footer>

@@ -1,5 +1,7 @@
 {
-  "name": "",
-  "description": "",
-  "requestFramePermissions": []
+  "name": "THCS Đào Duy Tùng",
+  "description": "Trường Trung học Cơ sở Đào Duy Tùng - Nơi ươm mầm tài năng, kiến tạo tương lai.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
 }

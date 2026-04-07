@@ -4,23 +4,23 @@ import './globals.css';
 
 const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-inter',
+  variable: '--font-body',
 });
 
 const notoSerif = Noto_Serif({
   subsets: ['latin'],
-  variable: '--font-noto-serif',
+  variable: '--font-headline',
 });
 
 export const metadata: Metadata = {
-  title: 'THCS Đào Duy Tùng',
-  description: 'Trang thông tin điện tử trường THCS Đào Duy Tùng',
+  title: 'THCS Đào Duy Tùng - Khai Phóng & Sáng Tạo',
+  description: 'Trường Trung học Cơ sở Đào Duy Tùng - Nơi ươm mầm tài năng, kiến tạo tương lai.',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="vi" className={`${inter.variable} ${notoSerif.variable}`}>
-      <body suppressHydrationWarning className="min-h-screen flex flex-col">{children}</body>
+      <body suppressHydrationWarning>{children}</body>
     </html>
   );
 }
