@@ -2,6 +2,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/sections/Hero";
 import NewsSection from "@/components/sections/NewsSection";
+import AchievementSection from "@/components/sections/AchievementSection";
 import EventSection from "@/components/sections/EventSection";
 import { CheckCircle } from "lucide-react";
 import Link from "next/link";
@@ -12,7 +13,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <NewsSection />
-
+      <AchievementSection />
       <EventSection />
 
       {/* About Section on Home */}

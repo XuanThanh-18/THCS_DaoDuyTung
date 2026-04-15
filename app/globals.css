@@ -19,12 +19,48 @@
   --font-body: "Inter", sans-serif;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @layer base {
   body {
     @apply bg-surface text-on-surface font-body;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-headline;
   }
 }
@@ -36,5 +72,17 @@
 
   .glass-nav {
     @apply bg-white/90 backdrop-blur-md border-b border-slate-100;
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slideInLeft {
+    animation: slideInLeft 0.5s ease-out;
+  }
+
+  .animate-slideInRight {
+    animation: slideInRight 0.5s ease-out;
   }
 }
