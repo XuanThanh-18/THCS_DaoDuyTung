@@ -2,6 +2,7 @@
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Search, Filter, Download, Eye } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface Document {
@@ -104,9 +105,12 @@ export default function DocumentsPage() {
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute inset-0 bg-secondary/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center gap-4 px-6">
-                      <button className="w-full py-3 bg-white text-secondary font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors">
+                      <Link
+                        href={`/documents/${doc.id}`}
+                        className="w-full py-3 bg-white text-secondary font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                      >
                         <Eye size={18} /> Xem chi tiết
-                      </button>
+                      </Link>
                       <a
                         href={doc.fileUrl}
                         target="_blank"

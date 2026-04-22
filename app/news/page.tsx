@@ -105,7 +105,7 @@ export default function NewsPage() {
                 {featured.excerpt || featured.content?.substring(0, 150)}
               </p>
               <Link
-                href={`/news/${featured.slug}`}
+                href={`/news/${featured.id}`}
                 className="inline-flex items-center gap-2 text-primary font-bold hover:underline"
               >
                 Đọc tiếp <ArrowRight size={18} />
@@ -117,31 +117,34 @@ export default function NewsPage() {
         {/* News Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
           {others.map((post) => (
-            <article key={post.id} className="group">
-              <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 editorial-shadow">
-                <img
-                  src={
-                    post.coverImage || "https://picsum.photos/seed/news/400/300"
-                  }
-                  alt={post.title}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                />
-              </div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-tertiary font-bold text-[10px] tracking-widest uppercase">
-                  {post.category}
-                </span>
-                <span className="text-on-surface-variant text-xs font-body">
-                  {formatDate(post.createdAt)}
-                </span>
-              </div>
-              <h3 className="text-xl font-headline font-bold text-on-surface leading-tight mb-3 group-hover:text-primary transition-colors line-clamp-2">
-                {post.title}
-              </h3>
-              <p className="text-on-surface-variant font-body text-sm line-clamp-3 leading-relaxed">
-                {post.excerpt || post.content?.substring(0, 100)}
-              </p>
-            </article>
+            <Link key={post.id} href={`/news/${post.id}`} className="group">
+              <article>
+                <div className="aspect-[4/3] rounded-2xl overflow-hidden mb-6 editorial-shadow">
+                  <img
+                    src={
+                      post.coverImage ||
+                      "https://picsum.photos/seed/news/400/300"
+                    }
+                    alt={post.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                </div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-tertiary font-bold text-[10px] tracking-widest uppercase">
+                    {post.category}
+                  </span>
+                  <span className="text-on-surface-variant text-xs font-body">
+                    {formatDate(post.createdAt)}
+                  </span>
+                </div>
+                <h3 className="text-xl font-headline font-bold text-on-surface leading-tight mb-3 group-hover:text-primary transition-colors line-clamp-2">
+                  {post.title}
+                </h3>
+                <p className="text-on-surface-variant font-body text-sm line-clamp-3 leading-relaxed">
+                  {post.excerpt || post.content?.substring(0, 100)}
+                </p>
+              </article>
+            </Link>
           ))}
         </div>
       </div>

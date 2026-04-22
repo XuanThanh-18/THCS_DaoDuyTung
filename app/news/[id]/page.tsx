@@ -1,82 +1,94 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/layout/Footer';
-import { Calendar, User, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
-import ReactMarkdown from 'react-markdown';
+import React, { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import DetailLayout from "@/components/DetailLayout";
+import { Loader } from "lucide-react";
+
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  excerpt?: string;
+  coverImage?: string;
+  category: string;
+  createdAt: string;
+  slug: string;
+}
 
 export default function NewsDetailPage() {
   const { id } = useParams();
-  const [post, setPost] = useState<any>(null);
+  const [post, setPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // In a real app, fetch from /api/posts/[id]
-    // Mocking for now
-    const mockPost = {
-      id: '1',
-      title: 'Rộn ràng không khí chuẩn bị cho Lễ Khai Giảng năm học mới 2024 - 2025',
-      content: `
-# Chào mừng năm học mới
-
-Công tác chuẩn bị cho ngày tựu trường đang được thầy và trò nhà trường gấp rút hoàn thiện, hứa hẹn một năm học đầy thành công và hạnh phúc.
-
-## Các hoạt động chuẩn bị
-- Trang trí khuôn viên trường học
-- Tập duyệt nghi thức đội
-- Chuẩn bị các tiết mục văn nghệ
-
-Chúng tôi rất mong chờ được đón các em học sinh trở lại trường!
-      `,
-      image: 'https://picsum.photos/seed/news1/1200/600',
-      category: 'Sự kiện nổi bật',
-      date: '25 Tháng 8, 2024',
-      author: 'Admin',
-    };
-    
-    setPost(mockPost);
-    setIsLoading(false);
+    fetchPost();
   }, [id]);
 
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  const fetchPost = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await fetch(`/api/posts/${id}`);
+
+      if (!response.ok) {
+        throw new Error("Không tìm thấy tin tức");
+      }
+
+      const data = await response.json();
+      setPost(data);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Lỗi khi tải tin tức");
+      console.error("Failed to fetch post:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("vi-VN", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader className="animate-spin text-primary" size={40} />
+          <p className="text-on-surface-variant">Đang tải tin tức...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error || !post) {
+    return (
+      <main className="min-h-screen bg-surface flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <p className="text-on-surface font-bold text-xl">{error || "Lỗi"}</p>
+          <a href="/news" className="text-primary font-bold hover:underline">
+            ← Quay lại tin tức
+          </a>
+        </div>
+      </main>
+    );
+  }
 
   return (
-    <main className="min-h-screen bg-surface">
-      <Navbar />
-      
-      <article className="pt-32 pb-24 px-6 md:px-12 max-w-4xl mx-auto">
-        <Link href="/news" className="inline-flex items-center gap-2 text-primary font-bold mb-8 hover:underline">
-          <ArrowLeft size={18} /> Quay lại tin tức
-        </Link>
-
-        <header className="mb-12">
-          <div className="flex items-center gap-4 mb-6">
-            <span className="px-3 py-1 bg-primary/10 text-primary rounded-md text-xs font-bold uppercase">
-              {post.category}
-            </span>
-            <div className="flex items-center gap-4 text-on-surface-variant text-sm font-body">
-              <span className="flex items-center gap-1"><Calendar size={14} /> {post.date}</span>
-              <span className="flex items-center gap-1"><User size={14} /> {post.author}</span>
-            </div>
-          </div>
-          <h1 className="text-4xl md:text-6xl font-headline font-bold text-on-surface leading-tight tracking-tight">
-            {post.title}
-          </h1>
-        </header>
-
-        <div className="rounded-3xl overflow-hidden shadow-xl mb-12 editorial-shadow">
-          <img src={post.image} alt={post.title} className="w-full h-auto" />
-        </div>
-
-        <div className="prose prose-lg max-w-none font-body text-on-surface-variant prose-headings:font-headline prose-headings:text-on-surface prose-primary">
-          <ReactMarkdown>{post.content}</ReactMarkdown>
-        </div>
-      </article>
-
-      <Footer />
-    </main>
+    <DetailLayout
+      type="news"
+      backLink="/news"
+      backText="Quay lại tin tức"
+      title={post.title}
+      category={post.category}
+      date={formatDate(post.createdAt)}
+      author="Admin"
+      image={post.coverImage}
+      content={post.content}
+    />
   );
 }
