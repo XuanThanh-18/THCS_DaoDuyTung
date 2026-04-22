@@ -1,189 +1,98 @@
-const { PrismaClient } = require("@prisma/client");
-const bcrypt = require("bcryptjs");
+// prisma/seed.ts
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log("🚀 Bắt đầu seed dữ liệu...");
+  console.log("🌱 Bắt đầu seed database...");
 
-  /**
-   * Xóa dữ liệu cũ theo thứ tự tránh lỗi foreign key
-   */
-  await prisma.announcement.deleteMany();
-  await prisma.document.deleteMany();
-  await prisma.event.deleteMany();
-  await prisma.post.deleteMany();
-  await prisma.user.deleteMany();
+  // Tạo admin user
+  const hashedPassword = await bcrypt.hash("Admin@123456", 12);
 
-  console.log("✅ Đã xóa dữ liệu cũ");
-
-  /**
-   * Tạo tài khoản Admin
-   */
-  const hashedPassword = await bcrypt.hash("admin123456", 10);
-
-  const adminUser = await prisma.user.create({
-    data: {
+  const admin = await prisma.user.upsert({
+    where: { email: "admin@daoduytung.edu.vn" },
+    update: {},
+    create: {
       email: "admin@daoduytung.edu.vn",
       password: hashedPassword,
-      name: "Admin THCS Đào Duy Tùng",
-      role: "ADMIN",
+      name: "Quản trị viên",
+      role: "SUPERADMIN",
     },
   });
 
-  console.log("✅ Tạo admin:");
-  console.log("📧 admin@daoduytung.edu.vn");
-  console.log("🔑 admin123456");
+  console.log(`✅ Admin user: ${admin.email}`);
 
-  /**
-   * Tạo bài viết / tin tức
-   */
-  const posts = await prisma.post.createMany({
-    data: [
-      {
-        title: "Lễ Khai Giảng năm học 2024 - 2025",
-        slug: "le-khai-giang-2024-2025",
-        content:
-          "Công tác chuẩn bị cho ngày tựu trường đang được thầy và trò nhà trường gấp rút hoàn thiện, hứa hẹn một năm học đầy thành công và hạnh phúc.",
-        excerpt: "Chuẩn bị cho ngày tựu trường năm học mới.",
-        coverImage: "https://picsum.photos/seed/school1/800/600",
-        category: "Sự kiện nổi bật",
-        status: "PUBLISHED",
-        featured: true,
-        publishDate: new Date("2024-09-01"),
-        authorId: adminUser.id,
-      },
-      {
-        title: 'Triển lãm mỹ thuật "Ước mơ tuổi hồng" lần thứ V',
-        slug: "trien-lam-my-thuat-uoc-mo-tuoi-hong-5",
-        content:
-          "Nơi hội tụ hơn 200 tác phẩm hội họa độc đáo do chính bàn tay tài hoa của các em học sinh THCS Đào Duy Tùng thể hiện.",
-        excerpt: "Triển lãm sáng tạo của học sinh.",
-        coverImage: "https://picsum.photos/seed/art/800/600",
-        category: "Hoạt động",
-        status: "PUBLISHED",
-        featured: false,
-        publishDate: new Date("2024-10-15"),
-        authorId: adminUser.id,
-      },
-      {
-        title: "Giải bóng đá nam học sinh chào mừng 26/3",
-        slug: "giai-bong-da-nam-chao-mung-26-3",
-        content:
-          "Sân chơi sôi động gắn kết tinh thần đoàn kết giữa các khối lớp.",
-        excerpt: "Giải đấu thể thao học sinh.",
-        coverImage: "https://picsum.photos/seed/football/800/600",
-        category: "Thể thao",
-        status: "PUBLISHED",
-        featured: true,
-        publishDate: new Date("2025-03-20"),
-        authorId: adminUser.id,
-      },
-    ],
+  // Tạo bài viết mẫu
+  const post = await prisma.post.upsert({
+    where: { slug: "chao-mung-nam-hoc-moi" },
+    update: {},
+    create: {
+      title: "Chào mừng năm học mới 2024-2025",
+      slug: "chao-mung-nam-hoc-moi",
+      content:
+        "Trường THCS Đào Duy Tùng trân trọng chào đón toàn thể học sinh, phụ huynh và giáo viên bước vào năm học mới 2024-2025 với nhiều kỳ vọng và hoài bão...",
+      excerpt: "Chào mừng năm học mới với nhiều hoạt động phong phú.",
+      category: "Tin tức",
+      status: "PUBLISHED",
+      featured: true,
+      publishDate: new Date(),
+      authorId: admin.id,
+    },
   });
 
-  console.log(`✅ Tạo ${posts.count} bài viết`);
+  console.log(`✅ Post mẫu: ${post.title}`);
 
-  /**
-   * Tạo sự kiện
-   */
-  const events = await prisma.event.createMany({
-    data: [
-      {
-        title: "Hội trại truyền thống 2024",
-        slug: "hoi-trai-truyen-thong-2024",
-        description:
-          "Chương trình trải nghiệm kỹ năng sống và sinh hoạt tập thể lớn nhất năm.",
-        excerpt: "Sự kiện trải nghiệm lớn nhất năm.",
-        eventDate: new Date("2024-11-20"),
-        location: "Sân trường THCS Đào Duy Tùng",
-        category: "Sự kiện lớn",
-        coverImage: "https://picsum.photos/seed/camp/800/600",
-        status: "PUBLISHED",
-        featured: true,
-        publishDate: new Date("2024-10-01"),
-        authorId: adminUser.id,
-      },
-      {
-        title: "Lễ trao giải học sinh giỏi",
-        slug: "le-trao-giai-hoc-sinh-gioi",
-        description:
-          "Tôn vinh những học sinh xuất sắc trong năm học với nhiều phần thưởng.",
-        excerpt: "Vinh danh học sinh xuất sắc.",
-        eventDate: new Date("2024-12-15"),
-        location: "Hội trường THCS Đào Duy Tùng",
-        category: "Thành tích",
-        coverImage: "https://picsum.photos/seed/award/800/600",
-        status: "PUBLISHED",
-        featured: true,
-        publishDate: new Date("2024-11-01"),
-        authorId: adminUser.id,
-      },
-    ],
+  // Tạo sự kiện mẫu
+  const event = await prisma.event.upsert({
+    where: { slug: "le-khai-giang-2024" },
+    update: {},
+    create: {
+      title: "Lễ Khai Giảng Năm Học 2024-2025",
+      slug: "le-khai-giang-2024",
+      description:
+        "Lễ khai giảng năm học mới được tổ chức long trọng tại sân trường với sự tham dự của toàn thể học sinh, giáo viên và phụ huynh.",
+      category: "Lễ kỷ niệm",
+      status: "PUBLISHED",
+      featured: true,
+      eventDate: new Date("2024-09-05T07:30:00"),
+      location: "Sân trường THCS Đào Duy Tùng",
+      publishDate: new Date(),
+      authorId: admin.id,
+    },
   });
 
-  console.log(`✅ Tạo ${events.count} sự kiện`);
+  console.log(`✅ Event mẫu: ${event.title}`);
 
-  /**
-   * Tạo thông báo
-   */
-  const announcements = await prisma.announcement.createMany({
-    data: [
-      {
-        title: "Thông báo hạn cuối nộp học phí",
-        slug: "thong-bao-han-nop-hoc-phi",
-        content: "Hạn cuối nộp học phí học kỳ I là ngày 30/11/2024.",
-        status: "PUBLISHED",
-        publishDate: new Date("2024-11-01"),
-        authorId: adminUser.id,
-      },
-      {
-        title: "Thông báo lịch thi học kỳ I",
-        slug: "thong-bao-lich-thi-hoc-ky-1",
-        content: "Lịch thi học kỳ I bắt đầu từ ngày 15/12/2024.",
-        status: "PUBLISHED",
-        publishDate: new Date("2024-11-20"),
-        authorId: adminUser.id,
-      },
-    ],
+  // Tạo thông báo mẫu
+  const announcement = await prisma.announcement.upsert({
+    where: { slug: "lich-tuu-truong-nam-hoc-moi" },
+    update: {},
+    create: {
+      title: "Lịch tựu trường năm học 2024-2025",
+      slug: "lich-tuu-truong-nam-hoc-moi",
+      content:
+        "Nhà trường thông báo lịch tựu trường chính thức: Học sinh lớp 6 tựu trường ngày 02/09/2024. Học sinh các khối còn lại tựu trường ngày 03/09/2024.",
+      status: "PUBLISHED",
+      priority: 1,
+      publishDate: new Date(),
+      authorId: admin.id,
+    },
   });
 
-  console.log(`✅ Tạo ${announcements.count} thông báo`);
+  console.log(`✅ Announcement mẫu: ${announcement.title}`);
 
-  const documents = await prisma.document.createMany({
-    data: [
-      {
-        title: "Nội quy học sinh",
-        description: "Quy định chung dành cho học sinh toàn trường.",
-        fileUrl: "https://example.com/files/noi-quy-hoc-sinh.pdf",
-        fileType: "PDF",
-        category: "Nội quy",
-      },
-      {
-        title: "Thời khóa biểu năm học 2024 - 2025",
-        description: "Lịch học chi tiết toàn trường.",
-        fileUrl: "https://example.com/files/thoi-khoa-bieu.pdf",
-        fileType: "PDF",
-        category: "Hành chính",
-      },
-      {
-        title: "Mẫu đơn xin nghỉ học",
-        description: "Dành cho học sinh và phụ huynh.",
-        fileUrl: "https://example.com/files/don-xin-nghi.docx",
-        fileType: "DOCX",
-        category: "Biểu mẫu",
-      },
-    ],
-  });
-
-  console.log(`✅ Tạo ${documents.count} tài liệu`);
-
-  console.log("🎉 Seed dữ liệu hoàn tất!");
+  console.log("\n🎉 Seed hoàn thành!");
+  console.log("─────────────────────────────");
+  console.log("📧 Email:    admin@daoduytung.edu.vn");
+  console.log("🔑 Password: Admin@123456");
+  console.log("─────────────────────────────");
+  console.log("⚠️  Đổi mật khẩu ngay sau lần đăng nhập đầu tiên!");
 }
 
 main()
-  .catch((error) => {
-    console.error("❌ Seed lỗi:", error);
+  .catch((e) => {
+    console.error("❌ Seed thất bại:", e);
     process.exit(1);
   })
   .finally(async () => {

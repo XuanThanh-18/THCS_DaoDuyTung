@@ -1,292 +1,265 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+// app/admin/dashboard/page.tsx
+import { prisma } from "@/lib/db";
+import { getCurrentUser } from "@/lib/auth";
+import { formatDateVN } from "@/lib/format";
+import { CONTENT_STATUS_COLORS, CONTENT_STATUS_LABELS } from "@/lib/constants";
+import Link from "next/link";
 import {
-  LayoutDashboard,
   FileText,
   Calendar,
-  Files,
-  LogOut,
-  Plus,
-  Settings,
-  Users,
+  Bell,
+  Mail,
   TrendingUp,
-  Menu,
-  X,
+  Clock,
+  Plus,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
 
-const sidebarItems = [
-  { name: "Tổng quan", icon: LayoutDashboard, id: "dashboard" },
-  { name: "Bài viết", icon: FileText, id: "posts" },
-  { name: "Sự kiện", icon: Calendar, id: "events" },
-  { name: "Tài liệu", icon: Files, id: "documents" },
-  { name: "Người dùng", icon: Users, id: "users" },
-  { name: "Cài đặt", icon: Settings, id: "settings" },
-];
+export const metadata = {
+  title: "Dashboard | Admin THCS Đào Duy Tùng",
+};
 
-export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [stats, setStats] = useState({
-    posts: 0,
-    events: 0,
-    documents: 0,
-  });
-  const router = useRouter();
+async function getStats() {
+  const [
+    totalPosts,
+    publishedPosts,
+    totalEvents,
+    totalAnnouncements,
+    unreadMessages,
+    recentPosts,
+    recentEvents,
+  ] = await Promise.all([
+    prisma.post.count(),
+    prisma.post.count({ where: { status: "PUBLISHED" } }),
+    prisma.event.count(),
+    prisma.announcement.count(),
+    prisma.contactMessage.count({ where: { isRead: false } }),
+    prisma.post.findMany({
+      take: 5,
+      orderBy: { createdAt: "desc" },
+      select: {
+        id: true,
+        title: true,
+        status: true,
+        category: true,
+        createdAt: true,
+      },
+    }),
+    prisma.event.findMany({
+      take: 5,
+      orderBy: { eventDate: "asc" },
+      where: {
+        eventDate: { gte: new Date() },
+        status: "PUBLISHED",
+      },
+      select: {
+        id: true,
+        title: true,
+        eventDate: true,
+        location: true,
+      },
+    }),
+  ]);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
-    try {
-      const [postsRes, eventsRes, docsRes] = await Promise.all([
-        fetch("/api/posts"),
-        fetch("/api/events"),
-        fetch("/api/documents"),
-      ]);
-
-      const postsData = await postsRes.json();
-      const eventsData = await eventsRes.json();
-      const docsData = await docsRes.json();
-
-      setStats({
-        posts: Array.isArray(postsData) ? postsData.length : 0,
-        events: Array.isArray(eventsData) ? eventsData.length : 0,
-        documents: Array.isArray(docsData) ? docsData.length : 0,
-      });
-    } catch (error) {
-      console.error("Failed to fetch stats:", error);
-    }
+  return {
+    totalPosts,
+    publishedPosts,
+    totalEvents,
+    totalAnnouncements,
+    unreadMessages,
+    recentPosts,
+    recentEvents,
   };
+}
 
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await fetch("/api/auth/logout", {
-        method: "POST",
-      });
-      router.push("/admin/login");
-    } catch (error) {
-      console.error("Logout error:", error);
-      router.push("/admin/login");
-    }
-  };
+export default async function DashboardPage() {
+  const user = await getCurrentUser();
+  const stats = await getStats();
+
+  const statCards = [
+    {
+      label: "Bài viết",
+      value: stats.totalPosts,
+      sub: `${stats.publishedPosts} đã đăng`,
+      icon: FileText,
+      color: "bg-blue-50 text-blue-600",
+      href: "/admin/posts",
+    },
+    {
+      label: "Sự kiện",
+      value: stats.totalEvents,
+      sub: "Tổng số sự kiện",
+      icon: Calendar,
+      color: "bg-purple-50 text-purple-600",
+      href: "/admin/events",
+    },
+    {
+      label: "Thông báo",
+      value: stats.totalAnnouncements,
+      sub: "Tổng số thông báo",
+      icon: Bell,
+      color: "bg-orange-50 text-orange-600",
+      href: "/admin/announcements",
+    },
+    {
+      label: "Tin nhắn mới",
+      value: stats.unreadMessages,
+      sub: "Chưa đọc",
+      icon: Mail,
+      color: "bg-green-50 text-green-600",
+      href: "/admin/contact-messages",
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-surface-container-low flex">
-      {/* Mobile Menu Button */}
-      <button
-        onClick={() => setSidebarOpen(!sidebarOpen)}
-        className="md:hidden fixed top-4 left-4 z-50 p-2 bg-slate-900 text-white rounded-lg"
-      >
-        {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
-      {/* Sidebar */}
-      <aside
-        className={cn(
-          "w-64 bg-slate-900 text-white flex flex-col fixed md:static h-screen md:h-auto transition-transform md:translate-x-0 z-40",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full",
-        )}
-      >
-        <div className="p-8 flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-bold">
-            DDT
-          </div>
-          <span className="font-headline font-bold text-lg">Admin Panel</span>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Tổng quan</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            Chào mừng trở lại, {user?.email}
+          </p>
         </div>
+        <Link
+          href="/admin/posts/new"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+        >
+          <Plus size={16} />
+          Thêm bài viết
+        </Link>
+      </div>
 
-        <nav className="flex-grow px-4 space-y-2">
-          {sidebarItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => {
-                setActiveTab(item.id);
-                setSidebarOpen(false);
-              }}
-              className={cn(
-                "w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-body text-sm",
-                activeTab === item.id
-                  ? "bg-primary text-white shadow-lg shadow-primary/20"
-                  : "text-slate-400 hover:bg-white/5 hover:text-white",
-              )}
+      {/* Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {statCards.map((card) => {
+          const Icon = card.icon;
+          return (
+            <Link
+              key={card.label}
+              href={card.href}
+              className="bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-sm transition-all"
             >
-              <item.icon size={20} />
-              {item.name}
-            </button>
-          ))}
-        </nav>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">{card.label}</p>
+                  <p className="text-3xl font-bold text-slate-900 mt-1">
+                    {card.value}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">{card.sub}</p>
+                </div>
+                <div className={cn("p-2.5 rounded-lg", card.color)}>
+                  <Icon size={20} />
+                </div>
+              </div>
+            </Link>
+          );
+        })}
+      </div>
 
-        <div className="p-4 border-t border-white/10">
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-400/10 transition-all font-body text-sm disabled:opacity-50"
-          >
-            <LogOut size={20} />
-            {isLoggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content */}
-      <main className="flex-grow p-6 md:p-10 overflow-y-auto w-full md:w-auto">
-        <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-          <div>
-            <h1 className="text-3xl font-headline font-bold text-on-surface">
-              {sidebarItems.find((i) => i.id === activeTab)?.name}
-            </h1>
-            <p className="text-on-surface-variant font-body mt-1">
-              Chào mừng trở lại, Quản trị viên
-            </p>
+      {/* Recent content */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent posts */}
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <TrendingUp size={16} className="text-slate-400" />
+              <h2 className="text-sm font-semibold text-slate-700">
+                Bài viết gần đây
+              </h2>
+            </div>
+            <Link
+              href="/admin/posts"
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Xem tất cả
+            </Link>
           </div>
-          <button className="bg-primary text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary-container transition-all shadow-lg shadow-primary/20 w-full md:w-auto justify-center md:justify-start">
-            <Plus size={20} />
-            Thêm mới
-          </button>
-        </header>
-
-        {activeTab === "dashboard" && (
-          <div className="space-y-10">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                {
-                  label: "Tổng bài viết",
-                  value: stats.posts.toString(),
-                  icon: FileText,
-                  color: "text-primary",
-                  bg: "bg-primary/10",
-                },
-                {
-                  label: "Sự kiện",
-                  value: stats.events.toString(),
-                  icon: Calendar,
-                  color: "text-secondary",
-                  bg: "bg-secondary/10",
-                },
-                {
-                  label: "Tài liệu",
-                  value: stats.documents.toString(),
-                  icon: Files,
-                  color: "text-tertiary",
-                  bg: "bg-tertiary/10",
-                },
-              ].map((stat, idx) => (
+          <div className="divide-y divide-slate-50">
+            {stats.recentPosts.length === 0 ? (
+              <p className="text-sm text-slate-400 text-center py-8">
+                Chưa có bài viết nào
+              </p>
+            ) : (
+              stats.recentPosts.map((post) => (
                 <div
-                  key={idx}
-                  className="bg-white p-8 rounded-3xl shadow-sm editorial-shadow flex items-center gap-6"
+                  key={post.id}
+                  className="px-5 py-3 flex items-center gap-3"
                 >
-                  <div
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">
+                      {post.title}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {post.category} · {formatDateVN(post.createdAt)}
+                    </p>
+                  </div>
+                  <span
                     className={cn(
-                      "w-16 h-16 rounded-2xl flex items-center justify-center",
-                      stat.bg,
-                      stat.color,
+                      "text-xs px-2 py-0.5 rounded-full font-medium shrink-0",
+                      CONTENT_STATUS_COLORS[post.status],
                     )}
                   >
-                    <stat.icon size={32} />
+                    {CONTENT_STATUS_LABELS[post.status]}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Upcoming events */}
+        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <Clock size={16} className="text-slate-400" />
+              <h2 className="text-sm font-semibold text-slate-700">
+                Sự kiện sắp diễn ra
+              </h2>
+            </div>
+            <Link
+              href="/admin/events"
+              className="text-xs text-blue-600 hover:underline"
+            >
+              Xem tất cả
+            </Link>
+          </div>
+          <div className="divide-y divide-slate-50">
+            {stats.recentEvents.length === 0 ? (
+              <p className="text-sm text-slate-400 text-center py-8">
+                Không có sự kiện sắp tới
+              </p>
+            ) : (
+              stats.recentEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="px-5 py-3 flex items-center gap-3"
+                >
+                  <div className="w-10 h-10 bg-purple-50 rounded-lg flex flex-col items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-purple-600 leading-none">
+                      {new Date(event.eventDate).getDate()}
+                    </span>
+                    <span className="text-[10px] text-purple-400 leading-none mt-0.5">
+                      Th{new Date(event.eventDate).getMonth() + 1}
+                    </span>
                   </div>
-                  <div>
-                    <p className="text-on-surface-variant text-sm font-body font-medium">
-                      {stat.label}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-slate-800 truncate">
+                      {event.title}
                     </p>
-                    <p className="text-3xl font-headline font-bold text-on-surface mt-1">
-                      {stat.value}
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">
+                      {event.location ?? "Chưa có địa điểm"}
                     </p>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* Recent Activity */}
-            <div className="bg-white rounded-3xl shadow-sm editorial-shadow overflow-hidden">
-              <div className="p-8 border-b border-slate-100 flex justify-between items-center">
-                <h3 className="font-headline font-bold text-xl">
-                  Hoạt động gần đây
-                </h3>
-                <button className="text-primary text-sm font-bold hover:underline hidden md:block">
-                  Xem tất cả
-                </button>
-              </div>
-              <div className="divide-y divide-slate-50">
-                {[
-                  {
-                    title: "Bài viết mới: Lễ Khai Giảng 2024",
-                    time: "2 giờ trước",
-                    type: "post",
-                  },
-                  {
-                    title: "Cập nhật tài liệu: Nội quy học sinh",
-                    time: "5 giờ trước",
-                    type: "doc",
-                  },
-                  {
-                    title: "Sự kiện mới: Hội trại truyền thống",
-                    time: "Hôm qua",
-                    type: "event",
-                  },
-                ].map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 flex-shrink-0">
-                        {item.type === "post" ? (
-                          <FileText size={18} />
-                        ) : item.type === "doc" ? (
-                          <Files size={18} />
-                        ) : (
-                          <Calendar size={18} />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-bold text-on-surface font-body truncate">
-                          {item.title}
-                        </p>
-                        <p className="text-xs text-on-surface-variant font-body">
-                          {item.time}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+              ))
+            )}
           </div>
-        )}
-
-        {activeTab !== "dashboard" && (
-          <div className="bg-white rounded-3xl shadow-sm editorial-shadow p-20 flex flex-col items-center justify-center text-center">
-            <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center text-slate-300 mb-6">
-              {(() => {
-                const Icon = sidebarItems.find((i) => i.id === activeTab)?.icon;
-                return Icon ? <Icon size={48} /> : null;
-              })()}
-            </div>
-            <h3 className="text-2xl font-headline font-bold text-on-surface">
-              Tính năng đang phát triển
-            </h3>
-            <p className="text-on-surface-variant font-body mt-2 max-w-md">
-              Mô-đun quản lý{" "}
-              {sidebarItems.find((i) => i.id === activeTab)?.name.toLowerCase()}{" "}
-              đang được hoàn thiện. Vui lòng quay lại sau.
-            </p>
-          </div>
-        )}
-      </main>
-
-      {/* Mobile Overlay */}
-      {sidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 md:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
+        </div>
+      </div>
     </div>
   );
+}
+
+function cn(...classes: (string | boolean | undefined)[]) {
+  return classes.filter(Boolean).join(" ");
 }

@@ -1,22 +1,21 @@
+// app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
-import { signToken, setTokenCookie } from "@/lib/auth";
+import { signToken } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = body;
 
-    // Validate input
     if (!email || !password) {
       return NextResponse.json(
-        { error: "Email và password không được để trống" },
+        { error: "Email và mật khẩu không được để trống" },
         { status: 400 },
       );
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return NextResponse.json(
@@ -25,11 +24,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user by email
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
+    const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return NextResponse.json(
         { error: "Email hoặc mật khẩu không chính xác" },
@@ -37,34 +32,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Verify password
-    const isPasswordValid = await verifyPassword(password, user.password);
-    if (!isPasswordValid) {
+    const valid = await verifyPassword(password, user.password);
+    if (!valid) {
       return NextResponse.json(
         { error: "Email hoặc mật khẩu không chính xác" },
         { status: 401 },
       );
     }
 
-    // Check if user is admin
     if (user.role !== "ADMIN" && user.role !== "SUPERADMIN") {
       return NextResponse.json(
-        { error: "Bạn không có quyền truy cập khu vực quản trị" },
+        { error: "Bạn không có quyền truy cập khu vực này" },
         { status: 403 },
       );
     }
 
-    // Create JWT token
     const token = await signToken({
       userId: user.id,
       email: user.email,
       role: user.role,
     });
 
-    // Set token in cookie
     const response = NextResponse.json({
       success: true,
-      message: "Đăng nhập thành công",
       user: {
         id: user.id,
         email: user.email,
@@ -77,16 +67,13 @@ export async function POST(request: NextRequest) {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-      maxAge: 7 * 24 * 60 * 60, // 7 days
+      maxAge: 7 * 24 * 60 * 60,
       path: "/",
     });
 
     return response;
   } catch (error) {
-    console.error("Login error:", error);
-    return NextResponse.json(
-      { error: "Có lỗi xảy ra, vui lòng thử lại" },
-      { status: 500 },
-    );
+    console.error("[login]", error);
+    return NextResponse.json({ error: "Có lỗi xảy ra" }, { status: 500 });
   }
 }
