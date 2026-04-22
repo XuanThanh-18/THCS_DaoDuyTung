@@ -1,4 +1,4 @@
-// app/api/events/[id]/route.ts
+// app/api/announcements/[id]/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
@@ -9,23 +9,19 @@ type Params = { params: Promise<{ id: string }> };
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    const event = await prisma.event.findUnique({
+    const announcement = await prisma.announcement.findUnique({
       where: { id },
-      include: { author: { select: { name: true, email: true } } },
+      include: { author: { select: { name: true } } },
     });
-    if (!event) {
+    if (!announcement) {
       return NextResponse.json(
-        { error: "Không tìm thấy sự kiện" },
+        { error: "Không tìm thấy thông báo" },
         { status: 404 },
       );
     }
-    await prisma.event.update({
-      where: { id },
-      data: { viewCount: { increment: 1 } },
-    });
-    return NextResponse.json(event);
+    return NextResponse.json(announcement);
   } catch (error) {
-    console.error("[GET /api/events/[id]]", error);
+    console.error("[GET /api/announcements/[id]]", error);
     return NextResponse.json({ error: "Có lỗi xảy ra" }, { status: 500 });
   }
 }
@@ -39,53 +35,38 @@ export async function PUT(request: NextRequest, { params }: Params) {
 
     const { id } = await params;
     const body = await request.json();
-    const {
-      title,
-      slug,
-      description,
-      excerpt,
-      coverImage,
-      category,
-      status,
-      featured,
-      publishDate,
-      eventDate,
-      location,
-    } = body;
+    const { title, slug, content, status, publishDate, priority, expiryDate } =
+      body;
 
-    const existing = await prisma.event.findUnique({ where: { id } });
+    const existing = await prisma.announcement.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json(
-        { error: "Không tìm thấy sự kiện" },
+        { error: "Không tìm thấy thông báo" },
         { status: 404 },
       );
     }
 
     const uniqueSlug =
       slug && slug !== existing.slug
-        ? await generateUniqueSlug(slug, prisma, "event", id)
+        ? await generateUniqueSlug(slug, prisma, "announcement", id)
         : existing.slug;
 
-    const event = await prisma.event.update({
+    const announcement = await prisma.announcement.update({
       where: { id },
       data: {
         title,
         slug: uniqueSlug,
-        description,
-        excerpt: excerpt ?? null,
-        coverImage: coverImage ?? null,
-        category: category ?? null,
+        content,
         status,
-        featured: featured ?? false,
-        eventDate: eventDate ? new Date(eventDate) : existing.eventDate,
-        location: location ?? null,
+        priority: priority ?? 0,
         publishDate: publishDate ? new Date(publishDate) : null,
+        expiryDate: expiryDate ? new Date(expiryDate) : null,
       },
     });
 
-    return NextResponse.json(event);
+    return NextResponse.json(announcement);
   } catch (error) {
-    console.error("[PUT /api/events/[id]]", error);
+    console.error("[PUT /api/announcements/[id]]", error);
     return NextResponse.json({ error: "Có lỗi xảy ra" }, { status: 500 });
   }
 }
@@ -97,10 +78,10 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
     const { id } = await params;
-    await prisma.event.delete({ where: { id } });
+    await prisma.announcement.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[DELETE /api/events/[id]]", error);
+    console.error("[DELETE /api/announcements/[id]]", error);
     return NextResponse.json({ error: "Có lỗi xảy ra" }, { status: 500 });
   }
 }

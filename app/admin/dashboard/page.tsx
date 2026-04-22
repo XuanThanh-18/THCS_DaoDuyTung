@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { formatDateVN } from "@/lib/format";
 import { CONTENT_STATUS_COLORS, CONTENT_STATUS_LABELS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
 import {
   FileText,
@@ -117,12 +118,13 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">Tổng quan</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Chào mừng trở lại, {user?.email}
+            Chào mừng trở lại,{" "}
+            <span className="font-medium">{user?.email}</span>
           </p>
         </div>
         <Link
           href="/admin/posts/new"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus size={16} />
           Thêm bài viết
@@ -258,8 +260,4 @@ export default async function DashboardPage() {
       </div>
     </div>
   );
-}
-
-function cn(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
 }
