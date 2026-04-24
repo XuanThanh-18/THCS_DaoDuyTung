@@ -33,13 +33,20 @@ export interface ContentRow {
 interface ContentTableProps {
   rows: ContentRow[];
   type: "post" | "event" | "announcement";
-  publicBasePath: string; // e.g. "/news"
+  publicBasePath: string;
 }
 
 const TYPE_LABELS = {
   post: { single: "bài viết", plural: "Bài viết" },
   event: { single: "sự kiện", plural: "Sự kiện" },
   announcement: { single: "thông báo", plural: "Thông báo" },
+};
+
+// FIX: tập trung map type → path, dùng ở 2 chỗ
+const ADMIN_PATH: Record<string, string> = {
+  post: "posts",
+  event: "events",
+  announcement: "announcements",
 };
 
 const API_BASE: Record<string, string> = {
@@ -59,6 +66,7 @@ export default function ContentTable({
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const labels = TYPE_LABELS[type];
+  const adminPath = ADMIN_PATH[type];
 
   const filtered = rows.filter((r) =>
     r.title.toLowerCase().includes(search.toLowerCase()),
@@ -95,8 +103,9 @@ export default function ContentTable({
             className="w-full pl-9 pr-4 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
           />
         </div>
+        {/* FIX: dùng adminPath thay vì ternary */}
         <Link
-          href={`/admin/${type === "post" ? "posts" : type === "event" ? "events" : "announcements"}/new`}
+          href={`/admin/${adminPath}/new`}
           className="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg transition-colors shrink-0"
         >
           <Plus size={16} />
@@ -104,13 +113,11 @@ export default function ContentTable({
         </Link>
       </div>
 
-      {/* Count */}
       <p className="text-sm text-slate-500">
         {filtered.length} {labels.single}
         {search && ` khớp với "${search}"`}
       </p>
 
-      {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         {filtered.length === 0 ? (
           <div className="text-center py-16">
@@ -149,7 +156,6 @@ export default function ContentTable({
                   key={row.id}
                   className="hover:bg-slate-50/50 transition-colors"
                 >
-                  {/* Title */}
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
                       {row.featured && (
@@ -166,7 +172,6 @@ export default function ContentTable({
                     </div>
                   </td>
 
-                  {/* Category */}
                   {type !== "announcement" && (
                     <td className="px-4 py-3.5 hidden md:table-cell">
                       <span className="text-xs text-slate-500">
@@ -175,7 +180,6 @@ export default function ContentTable({
                     </td>
                   )}
 
-                  {/* Date */}
                   <td className="px-4 py-3.5 hidden sm:table-cell">
                     <span className="text-xs text-slate-500">
                       {type === "event" && row.eventDate
@@ -184,7 +188,6 @@ export default function ContentTable({
                     </span>
                   </td>
 
-                  {/* Status */}
                   <td className="px-4 py-3.5">
                     <span
                       className={cn(
@@ -197,10 +200,8 @@ export default function ContentTable({
                     </span>
                   </td>
 
-                  {/* Actions */}
                   <td className="px-4 py-3.5">
                     <div className="flex items-center justify-end gap-1">
-                      {/* View public */}
                       {row.status === "PUBLISHED" && (
                         <a
                           href={`${publicBasePath}/${row.slug}`}
@@ -213,22 +214,15 @@ export default function ContentTable({
                         </a>
                       )}
 
-                      {/* Edit */}
+                      {/* FIX: dùng adminPath thay vì ternary */}
                       <Link
-                        href={`/admin/${
-                          type === "post"
-                            ? "posts"
-                            : type === "event"
-                              ? "events"
-                              : "announcements"
-                        }/${row.id}/edit`}
+                        href={`/admin/${adminPath}/${row.id}/edit`}
                         className="p-1.5 rounded-md text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-all"
                         title="Chỉnh sửa"
                       >
                         <Pencil size={15} />
                       </Link>
 
-                      {/* Delete */}
                       {confirmId === row.id ? (
                         <div className="flex items-center gap-1">
                           <button

@@ -35,11 +35,16 @@ export const eventSchema = baseContentSchema
   .extend({
     type: z.literal("event"),
     description: z.string().min(10, "Mô tả phải có ít nhất 10 ký tự"),
-    eventDate: z.date("Vui lòng chọn ngày diễn ra"),
+    eventDate: z.coerce.date({
+      required_error: "Vui lòng chọn ngày diễn ra",
+      invalid_type_error: "Ngày không hợp lệ",
+    }),
     location: z.string().min(3, "Địa điểm phải có ít nhất 3 ký tự"),
   })
   .omit({ content: true })
-  .extend({ content: z.string().optional().default("") });
+  .extend({
+    content: z.string().optional().default(""),
+  });
 
 // Schema cho Announcements (thông báo)
 export const announcementSchema = z.object({

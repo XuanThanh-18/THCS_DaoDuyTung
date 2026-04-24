@@ -29,7 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
-
+export async function generateStaticParams() {
+  const events = await prisma.event.findMany({
+    where: { status: "PUBLISHED" },
+    select: { slug: true },
+  });
+  return events.map((e) => ({ slug: e.slug }));
+}
 export default async function EventDetailPage({ params }: Props) {
   const { slug } = await params;
 

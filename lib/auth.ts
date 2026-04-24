@@ -1,4 +1,4 @@
-import { jwtVerify, SignJWT } from "jose";
+import { jwtVerify, SignJWT, JWTPayload } from "jose";
 import { cookies } from "next/headers";
 
 // ── Fail fast nếu thiếu secret ──────────────────────────
@@ -13,7 +13,7 @@ const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 const COOKIE_NAME = "admin_token";
 const TOKEN_EXPIRY = "7d";
 
-export interface JWTPayload {
+export interface AuthPayload extends JWTPayload {
   userId: string;
   email: string;
   role: string;
@@ -22,7 +22,7 @@ export interface JWTPayload {
 }
 
 // ── Sign token ───────────────────────────────────────────
-export async function signToken(payload: JWTPayload): Promise<string> {
+export async function signToken(payload: AuthPayload): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -31,10 +31,10 @@ export async function signToken(payload: JWTPayload): Promise<string> {
 }
 
 // ── Verify token ─────────────────────────────────────────
-export async function verifyToken(token: string): Promise<JWTPayload | null> {
+export async function verifyToken(token: string): Promise<AuthPayload | null> {
   try {
     const { payload } = await jwtVerify(token, secret);
-    return payload as JWTPayload;
+    return payload as AuthPayload;
   } catch {
     return null;
   }
@@ -63,7 +63,7 @@ export async function removeTokenCookie(): Promise<void> {
 }
 
 // ── getCurrentUser — dùng trong Server Components & API routes ──
-export async function getCurrentUser(): Promise<JWTPayload | null> {
+export async function getCurrentUser(): Promise<AuthPayload | null> {
   const token = await getTokenCookie();
   if (!token) return null;
   return verifyToken(token);

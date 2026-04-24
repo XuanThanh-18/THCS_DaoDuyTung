@@ -1,14 +1,17 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export async function GET() {
   try {
     const documents = await prisma.document.findMany({
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return NextResponse.json(documents);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to fetch documents' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch documents" },
+      { status: 500 },
+    );
   }
 }
 
@@ -22,10 +25,14 @@ export async function POST(request: Request) {
         fileUrl: body.fileUrl,
         fileType: body.fileType,
         category: body.category,
+        authorId: body.authorId,
       },
     });
     return NextResponse.json(document);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to create document' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create document" },
+      { status: 500 },
+    );
   }
 }

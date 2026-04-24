@@ -105,7 +105,7 @@ export default function AboutPage() {
               </h3>
               <p className="text-on-surface-variant text-lg leading-relaxed font-body">
                 <span className="font-bold">
-                  "Thắp sáng niềm tin – Gieo mầm khát vọng"
+                  &quot;Thắp sáng niềm tin – Gieo mầm khát vọng&quot;
                 </span>{" "}
                 – Nơi dạy chữ, dạy người, nuôi dưỡng những ước mơ, bồi đắp tinh
                 thần hiếu học, rèn luyện bản lĩnh và sáng tạo cho các em học
@@ -118,7 +118,7 @@ export default function AboutPage() {
               </h3>
               <p className="opacity-90 text-lg leading-relaxed font-body">
                 <span className="font-bold">
-                  "Thực học - Thực làm - Thực giá trị"
+                  &quot;Thực học - Thực làm - Thực giá trị&quot;
                 </span>{" "}
                 – Xây dựng môi trường học tập thân thiện, đổi mới, sáng tạo,
                 khơi dậy khát vọng, nuôi dưỡng đam mê và lan tỏa tinh thần nhân
@@ -314,17 +314,17 @@ export default function AboutPage() {
               <p className="text-on-surface-variant font-body leading-relaxed">
                 Với những chia sẻ chân thành về sự nghiệp trồng người, thầy và
                 trò nhà trường đều được truyền cảm hứng cùng nguồn động lực to
-                lớn, thêm vững lòng tin vào sứ mệnh "Thực học - Thực làm - Thực
-                giá trị".
+                lớn, thêm vững lòng tin vào sứ mệnh &quot;Thực học - Thực làm -
+                Thực giá trị&quot;.
               </p>
             </div>
 
             <div className="p-6 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl">
               <p className="text-on-surface font-body italic leading-relaxed">
-                "Từng lời chia sẻ, động viên ấm áp, từng cuốn sách bổ ích làm
-                phong phú thêm tủ sách của các em học sinh... những món quà ấy
-                đều mang ý nghĩa tinh thần vô giá mà Tiến sĩ cùng gia đình gửi
-                gắm."
+                &quot;Từng lời chia sẻ, động viên ấm áp, từng cuốn sách bổ ích
+                làm phong phú thêm tủ sách của các em học sinh... những món quà
+                ấy đều mang ý nghĩa tinh thần vô giá mà Tiến sĩ cùng gia đình
+                gửi gắm.&quot;
               </p>
             </div>
           </div>
@@ -458,8 +458,8 @@ export default function AboutPage() {
           <div className="md:w-2/3 p-12 md:p-20 flex flex-col justify-center">
             <Quote size={48} className="text-primary opacity-20 mb-4" />
             <h2 className="text-3xl font-headline font-bold mb-8 italic">
-              "Giáo dục không phải là việc đổ đầy một cái bình, mà là thắp sáng
-              một ngọn lửa."
+              &quot;Giáo dục không phải là việc đổ đầy một cái bình, mà là thắp
+              sáng một ngọn lửa.&quot;
             </h2>
             <p className="text-on-surface-variant text-lg mb-8 leading-relaxed font-body">
               Tại THCS Đào Duy Tùng, chúng tôi tin rằng mỗi đứa trẻ là một hạt
@@ -467,10 +467,10 @@ export default function AboutPage() {
               ánh sáng phù hợp để các em tự tin nở hoa theo cách riêng của mình.
             </p>
             <p className="text-on-surface-variant text-lg mb-8 leading-relaxed font-body">
-              Với tôn chỉ "Thực học - Thực làm - Thực giá trị", chúng tôi cam
-              kết xây dựng một môi trường học tập nơi mỗi học sinh không chỉ
-              tiếp nhận kiến thức mà còn phát triển kỹ năng sống, rèn luyện bản
-              lĩnh và tôn trọng giá trị của bản thân. Chào mừng các bậc phụ
+              Với tôn chỉ &quot;Thực học - Thực làm - Thực giá trị&quot;, chúng
+              tôi cam kết xây dựng một môi trường học tập nơi mỗi học sinh không
+              chỉ tiếp nhận kiến thức mà còn phát triển kỹ năng sống, rèn luyện
+              bản lĩnh và tôn trọng giá trị của bản thân. Chào mừng các bậc phụ
               huynh và học sinh đến với gia đình Đào Duy Tùng.
             </p>
             <div>

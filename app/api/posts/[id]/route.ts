@@ -6,7 +6,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 
 type Params = { params: Promise<{ id: string }> };
 
-// GET — public, lấy 1 bài theo ID
+// GET — public, chỉ trả data, KHÔNG tăng viewCount
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
@@ -14,20 +14,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
       where: { id },
       include: { author: { select: { name: true, email: true } } },
     });
-
     if (!post) {
       return NextResponse.json(
         { error: "Không tìm thấy bài viết" },
         { status: 404 },
       );
     }
-
-    // Tăng view count
-    await prisma.post.update({
-      where: { id },
-      data: { viewCount: { increment: 1 } },
-    });
-
     return NextResponse.json(post);
   } catch (error) {
     console.error("[GET /api/posts/[id]]", error);
@@ -35,7 +27,6 @@ export async function GET(_req: NextRequest, { params }: Params) {
   }
 }
 
-// PUT — chỉnh sửa, yêu cầu ADMIN
 export async function PUT(request: NextRequest, { params }: Params) {
   try {
     const user = await getCurrentUser();
@@ -92,17 +83,14 @@ export async function PUT(request: NextRequest, { params }: Params) {
   }
 }
 
-// DELETE — yêu cầu ADMIN
 export async function DELETE(_req: NextRequest, { params }: Params) {
   try {
     const user = await getCurrentUser();
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPERADMIN")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-
     const { id } = await params;
     await prisma.post.delete({ where: { id } });
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("[DELETE /api/posts/[id]]", error);

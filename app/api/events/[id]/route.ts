@@ -6,6 +6,7 @@ import { generateUniqueSlug } from "@/lib/slug";
 
 type Params = { params: Promise<{ id: string }> };
 
+// GET — không tăng viewCount ở API route
 export async function GET(_req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
@@ -19,10 +20,6 @@ export async function GET(_req: NextRequest, { params }: Params) {
         { status: 404 },
       );
     }
-    await prisma.event.update({
-      where: { id },
-      data: { viewCount: { increment: 1 } },
-    });
     return NextResponse.json(event);
   } catch (error) {
     console.error("[GET /api/events/[id]]", error);

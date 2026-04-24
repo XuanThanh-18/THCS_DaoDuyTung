@@ -52,7 +52,6 @@ const BACK_HREF: Record<ContentType, string> = {
   announcement: "/admin/announcements",
 };
 
-// API endpoint mới (không còn /api/content/)
 const API_BASE: Record<ContentType, string> = {
   post: "/api/posts",
   event: "/api/events",
@@ -72,6 +71,28 @@ interface FormState {
   publishDate: string;
   eventDate: string;
   location: string;
+}
+
+// ── Client-side validation ───────────────────────────────
+function validateForm(form: FormState, type: ContentType): string | null {
+  if (!form.title.trim()) return "Vui lòng nhập tiêu đề";
+
+  if (type === "post") {
+    if (!form.content.trim()) return "Vui lòng nhập nội dung bài viết";
+    if (!form.category) return "Vui lòng chọn danh mục";
+  }
+
+  if (type === "event") {
+    if (!form.description.trim()) return "Vui lòng nhập mô tả sự kiện";
+    if (!form.eventDate) return "Vui lòng chọn ngày diễn ra";
+    if (!form.location.trim()) return "Vui lòng nhập địa điểm";
+  }
+
+  if (type === "announcement") {
+    if (!form.content.trim()) return "Vui lòng nhập nội dung thông báo";
+  }
+
+  return null;
 }
 
 export default function ContentEditorForm({
@@ -111,7 +132,6 @@ export default function ContentEditorForm({
     setForm((prev) => ({
       ...prev,
       title,
-      // Chỉ tự sinh slug khi tạo mới
       slug: isEditing ? prev.slug : generateSlug(title),
     }));
   };
@@ -138,6 +158,7 @@ export default function ContentEditorForm({
     if (type === "event") {
       return {
         ...base,
+        // FIX: description cho event, excerpt riêng
         description: form.description,
         excerpt: form.excerpt || null,
         coverImage: form.coverImage || null,
@@ -147,7 +168,6 @@ export default function ContentEditorForm({
       };
     }
 
-    // announcement
     return {
       ...base,
       content: form.content,
@@ -155,10 +175,18 @@ export default function ContentEditorForm({
   };
 
   const handleSubmit = async (
-    e: React.FormEvent,
+    e: React.MouseEvent,
     action: "draft" | "publish",
   ) => {
     e.preventDefault();
+
+    // FIX: client-side validation
+    const validationError = validateForm(form, type);
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setError(null);
     setLoading(true);
 
@@ -188,7 +216,12 @@ export default function ContentEditorForm({
   };
 
   const categories = CATEGORY_MAP[type];
+
+  // FIX: đúng field cho từng type
   const mainContent = type === "event" ? form.description : form.content;
+  const mainContentKey: keyof FormState =
+    type === "event" ? "description" : "content";
+  const mainContentLabel = type === "event" ? "Mô tả chi tiết" : "Nội dung";
 
   return (
     <div className="space-y-6">
@@ -220,276 +253,264 @@ export default function ContentEditorForm({
         </div>
       )}
 
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* ── Cột trái (2/3) ── */}
-          <div className="lg:col-span-2 space-y-5">
-            {/* Title */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                Tiêu đề <span className="text-red-500">*</span>
-              </label>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* ── Cột trái (2/3) ── */}
+        <div className="lg:col-span-2 space-y-5">
+          {/* Title + Slug */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              Tiêu đề <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              value={form.title}
+              onChange={handleTitleChange}
+              placeholder={`Nhập tiêu đề ${TYPE_LABELS[type]}...`}
+              className="w-full text-lg font-semibold text-slate-900 placeholder:text-slate-300 bg-transparent border-none outline-none"
+            />
+            <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
+              <span className="text-xs text-slate-400 shrink-0">Slug:</span>
               <input
                 type="text"
-                value={form.title}
-                onChange={handleTitleChange}
-                placeholder={`Nhập tiêu đề ${TYPE_LABELS[type]}...`}
-                required
-                className="w-full text-lg font-semibold text-slate-900 placeholder:text-slate-300 bg-transparent border-none outline-none resize-none"
+                value={form.slug}
+                onChange={(e) => set("slug", e.target.value)}
+                className="flex-1 text-xs text-slate-500 bg-slate-50 rounded px-2 py-1 font-mono outline-none focus:bg-slate-100 transition-colors"
               />
-              {/* Slug */}
-              <div className="mt-3 pt-3 border-t border-slate-100 flex items-center gap-2">
-                <span className="text-xs text-slate-400 shrink-0">Slug:</span>
-                <input
-                  type="text"
-                  value={form.slug}
-                  onChange={(e) => set("slug", e.target.value)}
-                  className="flex-1 text-xs text-slate-500 bg-slate-50 rounded px-2 py-1 font-mono outline-none focus:bg-slate-100 transition-colors"
-                />
-              </div>
             </div>
+          </div>
 
-            {/* Cover image (post & event) */}
-            {type !== "announcement" && (
-              <div className="bg-white rounded-xl border border-slate-200 p-5">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
-                  Ảnh đại diện
-                </label>
-                {form.coverImage && (
-                  <div className="mb-3 rounded-lg overflow-hidden aspect-video w-full bg-slate-100">
-                    <img
-                      src={form.coverImage}
-                      alt="Preview"
-                      className="w-full h-full object-cover"
-                      onError={(e) => (e.currentTarget.style.display = "none")}
-                    />
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <ImageIcon size={16} className="text-slate-400 shrink-0" />
-                  <input
-                    type="url"
-                    value={form.coverImage}
-                    onChange={(e) => set("coverImage", e.target.value)}
-                    placeholder="https://example.com/image.jpg"
-                    className="flex-1 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2 outline-none focus:bg-slate-100 transition-colors border border-slate-200 focus:border-slate-300"
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Excerpt / Description */}
-            {type !== "announcement" && (
-              <div className="bg-white rounded-xl border border-slate-200 p-5">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                  {type === "event" ? "Mô tả ngắn" : "Tóm tắt"}
-                </label>
-                <textarea
-                  value={type === "event" ? form.excerpt : form.excerpt}
-                  onChange={(e) => set("excerpt", e.target.value)}
-                  placeholder="Mô tả ngắn gọn..."
-                  rows={3}
-                  className="w-full text-sm text-slate-700 bg-transparent border-none outline-none resize-none placeholder:text-slate-300"
-                />
-              </div>
-            )}
-
-            {/* Nội dung chính */}
+          {/* Cover image (post & event) */}
+          {type !== "announcement" && (
             <div className="bg-white rounded-xl border border-slate-200 p-5">
-              <div className="flex items-center justify-between mb-3">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                  {type === "event" ? "Mô tả chi tiết" : "Nội dung"}{" "}
-                  <span className="text-red-500">*</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowPreview(!showPreview)}
-                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors"
-                >
-                  {showPreview ? (
-                    <>
-                      <EyeOff size={14} /> Ẩn preview
-                    </>
-                  ) : (
-                    <>
-                      <Eye size={14} /> Preview
-                    </>
-                  )}
-                </button>
-              </div>
-
-              {showPreview ? (
-                <div className="prose prose-sm max-w-none min-h-[200px] text-slate-700">
-                  <ReactMarkdown>{mainContent}</ReactMarkdown>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                Ảnh đại diện
+              </label>
+              {form.coverImage && (
+                <div className="mb-3 rounded-lg overflow-hidden aspect-video bg-slate-100">
+                  <img
+                    src={form.coverImage}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
                 </div>
-              ) : (
-                <textarea
-                  value={mainContent}
-                  onChange={(e) =>
-                    set(
-                      type === "event" ? "description" : "content",
-                      e.target.value,
-                    )
-                  }
-                  placeholder="Nhập nội dung (hỗ trợ Markdown)..."
-                  rows={14}
-                  required
-                  className="w-full text-sm text-slate-700 bg-transparent border-none outline-none resize-none placeholder:text-slate-300 font-mono leading-relaxed"
-                />
               )}
+              <div className="flex items-center gap-2">
+                <ImageIcon size={16} className="text-slate-400 shrink-0" />
+                <input
+                  type="url"
+                  value={form.coverImage}
+                  onChange={(e) => set("coverImage", e.target.value)}
+                  placeholder="https://example.com/image.jpg"
+                  className="flex-1 text-sm bg-slate-50 rounded-lg px-3 py-2 outline-none focus:bg-slate-100 border border-slate-200 transition-colors"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Excerpt — post và event đều có */}
+          {type !== "announcement" && (
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                Tóm tắt ngắn
+              </label>
+              <textarea
+                value={form.excerpt}
+                onChange={(e) => set("excerpt", e.target.value)}
+                placeholder="Mô tả ngắn gọn hiển thị ở trang danh sách..."
+                rows={3}
+                className="w-full text-sm text-slate-700 bg-transparent border-none outline-none resize-none placeholder:text-slate-300"
+              />
+            </div>
+          )}
+
+          {/* Nội dung chính — FIX: bind đúng field */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                {mainContentLabel} <span className="text-red-500">*</span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowPreview(!showPreview)}
+                className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition-colors"
+              >
+                {showPreview ? (
+                  <>
+                    <EyeOff size={14} /> Ẩn preview
+                  </>
+                ) : (
+                  <>
+                    <Eye size={14} /> Preview Markdown
+                  </>
+                )}
+              </button>
             </div>
 
-            {/* Event: Date + Location */}
-            {type === "event" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                    <Calendar size={12} className="inline mr-1" />
-                    Ngày diễn ra <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="date"
-                    value={form.eventDate}
-                    onChange={(e) => set("eventDate", e.target.value)}
-                    required
-                    className="w-full text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2 outline-none focus:bg-slate-100 border border-slate-200 focus:border-slate-300 transition-colors"
-                  />
-                </div>
-                <div className="bg-white rounded-xl border border-slate-200 p-5">
-                  <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                    <MapPin size={12} className="inline mr-1" />
-                    Địa điểm <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={form.location}
-                    onChange={(e) => set("location", e.target.value)}
-                    placeholder="Tên địa điểm..."
-                    required
-                    className="w-full text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2 outline-none focus:bg-slate-100 border border-slate-200 focus:border-slate-300 transition-colors"
-                  />
-                </div>
+            {showPreview ? (
+              <div className="prose prose-sm max-w-none min-h-[200px] text-slate-700">
+                <ReactMarkdown>{mainContent}</ReactMarkdown>
               </div>
+            ) : (
+              <textarea
+                value={mainContent}
+                onChange={(e) => set(mainContentKey, e.target.value)}
+                placeholder="Nhập nội dung, hỗ trợ Markdown: **đậm**, *nghiêng*, # Tiêu đề..."
+                rows={16}
+                className="w-full text-sm text-slate-700 bg-transparent border-none outline-none resize-none placeholder:text-slate-300 font-mono leading-relaxed"
+              />
             )}
           </div>
 
-          {/* ── Cột phải (1/3) — Publishing sidebar ── */}
-          <div className="space-y-5">
-            {/* Actions */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
-              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                Xuất bản
-              </p>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={(e) => handleSubmit(e, "publish")}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-semibold rounded-lg transition-colors"
-              >
-                {loading ? (
-                  <Loader2 size={16} className="animate-spin" />
-                ) : (
-                  <Send size={16} />
-                )}
-                {isEditing ? "Lưu & Xuất bản" : "Xuất bản ngay"}
-              </button>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={(e) => handleSubmit(e, "draft")}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 text-sm font-semibold rounded-lg transition-colors"
-              >
-                <Save size={16} />
-                Lưu nháp
-              </button>
+          {/* Event: Date + Location */}
+          {type === "event" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <div className="bg-white rounded-xl border border-slate-200 p-5">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  <Calendar size={12} className="inline mr-1" />
+                  Ngày diễn ra <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  value={form.eventDate}
+                  onChange={(e) => set("eventDate", e.target.value)}
+                  className="w-full text-sm bg-slate-50 rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-slate-300 transition-colors"
+                />
+              </div>
+              <div className="bg-white rounded-xl border border-slate-200 p-5">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                  <MapPin size={12} className="inline mr-1" />
+                  Địa điểm <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={form.location}
+                  onChange={(e) => set("location", e.target.value)}
+                  placeholder="Tên địa điểm..."
+                  className="w-full text-sm bg-slate-50 rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-slate-300 transition-colors"
+                />
+              </div>
             </div>
+          )}
+        </div>
 
-            {/* Status */}
+        {/* ── Sidebar phải (1/3) ── */}
+        <div className="space-y-5">
+          {/* Actions */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+              Xuất bản
+            </p>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={(e) => handleSubmit(e, "publish")}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-semibold rounded-lg transition-colors"
+            >
+              {loading ? (
+                <Loader2 size={16} className="animate-spin" />
+              ) : (
+                <Send size={16} />
+              )}
+              {isEditing ? "Lưu & Xuất bản" : "Xuất bản ngay"}
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={(e) => handleSubmit(e, "draft")}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-100 hover:bg-slate-200 disabled:opacity-50 text-slate-700 text-sm font-semibold rounded-lg transition-colors"
+            >
+              <Save size={16} />
+              Lưu nháp
+            </button>
+          </div>
+
+          {/* Status */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              Trạng thái
+            </label>
+            <select
+              value={form.status}
+              onChange={(e) => set("status", e.target.value)}
+              className="w-full text-sm bg-slate-50 rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-slate-300 transition-colors"
+            >
+              {Object.entries(CONTENT_STATUS_LABELS).map(([val, label]) => (
+                <option key={val} value={val}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Category */}
+          {categories.length > 0 && (
             <div className="bg-white rounded-xl border border-slate-200 p-5">
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                Trạng thái
+                Danh mục <span className="text-red-500">*</span>
               </label>
               <select
-                value={form.status}
-                onChange={(e) => set("status", e.target.value)}
-                className="w-full text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-slate-300 transition-colors"
+                value={form.category}
+                onChange={(e) => set("category", e.target.value)}
+                className="w-full text-sm bg-slate-50 rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-slate-300 transition-colors"
               >
-                {Object.entries(CONTENT_STATUS_LABELS).map(([val, label]) => (
-                  <option key={val} value={val}>
-                    {label}
+                <option value="">Chọn danh mục...</option>
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
                   </option>
                 ))}
               </select>
             </div>
+          )}
 
-            {/* Category (post & event) */}
-            {categories.length > 0 && (
-              <div className="bg-white rounded-xl border border-slate-200 p-5">
-                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                  Danh mục <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={form.category}
-                  onChange={(e) => set("category", e.target.value)}
-                  required
-                  className="w-full text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-slate-300 transition-colors"
-                >
-                  <option value="">Chọn danh mục...</option>
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            {/* Publish date */}
-            <div className="bg-white rounded-xl border border-slate-200 p-5">
-              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-                Ngày đăng
-              </label>
-              <input
-                type="date"
-                value={form.publishDate}
-                onChange={(e) => set("publishDate", e.target.value)}
-                className="w-full text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-slate-300 transition-colors"
-              />
-            </div>
-
-            {/* Featured (post & event) */}
-            {type !== "announcement" && (
-              <div className="bg-white rounded-xl border border-slate-200 p-5">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <div
-                    onClick={() => set("featured", !form.featured)}
-                    className={cn(
-                      "w-10 h-6 rounded-full relative transition-colors",
-                      form.featured ? "bg-blue-600" : "bg-slate-200",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all",
-                        form.featured ? "left-5" : "left-1",
-                      )}
-                    />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-slate-700 flex items-center gap-1">
-                      <Star size={14} className="text-amber-400" />
-                      Bài nổi bật
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      Hiển thị ở vị trí đặc biệt
-                    </p>
-                  </div>
-                </label>
-              </div>
-            )}
+          {/* Publish date */}
+          <div className="bg-white rounded-xl border border-slate-200 p-5">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+              Ngày đăng
+            </label>
+            <input
+              type="date"
+              value={form.publishDate}
+              onChange={(e) => set("publishDate", e.target.value)}
+              className="w-full text-sm bg-slate-50 rounded-lg px-3 py-2 outline-none border border-slate-200 focus:border-slate-300 transition-colors"
+            />
           </div>
+
+          {/* Featured */}
+          {type !== "announcement" && (
+            <div className="bg-white rounded-xl border border-slate-200 p-5">
+              <div
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => set("featured", !form.featured)}
+              >
+                <div
+                  className={cn(
+                    "w-10 h-6 rounded-full relative transition-colors shrink-0",
+                    form.featured ? "bg-blue-600" : "bg-slate-200",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all",
+                      form.featured ? "left-5" : "left-1",
+                    )}
+                  />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-slate-700 flex items-center gap-1">
+                    <Star size={14} className="text-amber-400" />
+                    Bài nổi bật
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    Hiển thị ở vị trí đặc biệt
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
-      </form>
+      </div>
     </div>
   );
 }
