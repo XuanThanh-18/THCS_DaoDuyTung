@@ -2,11 +2,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "./lib/auth";
 
+// Routes trong /admin/* không cần đăng nhập
+const PUBLIC_ADMIN_ROUTES = ["/admin/login", "/admin/register"];
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Bỏ qua login page
-  if (pathname.startsWith("/admin/login")) {
+  // Bỏ qua các trang public (login, register)
+  if (PUBLIC_ADMIN_ROUTES.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 

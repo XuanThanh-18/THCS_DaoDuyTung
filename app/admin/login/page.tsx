@@ -3,8 +3,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { SCHOOL } from "@/lib/constants";
-import { Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
+import { Eye, EyeOff, Lock, Mail, AlertCircle, UserPlus } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -137,6 +138,23 @@ export default function LoginPage() {
               {loading ? "Đang đăng nhập..." : "Đăng nhập"}
             </button>
           </form>
+
+          {/* Link đăng ký */}
+          <div className="mt-6 pt-5 border-t border-slate-100">
+            <p className="text-center text-xs text-slate-500 mb-3">
+              Chưa có tài khoản?
+            </p>
+            <Link
+              href="/admin/register"
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 border border-slate-200 text-slate-700 text-sm font-medium rounded-lg hover:bg-slate-50 hover:border-slate-300 transition-all"
+            >
+              <UserPlus size={15} className="text-slate-500" />
+              Đăng ký tài khoản mới
+            </Link>
+            <p className="text-center text-xs text-slate-400 mt-2">
+              Yêu cầu SUPERADMIN xác nhận
+            </p>
+          </div>
         </div>
 
         <p className="text-center text-xs text-slate-400 mt-6">

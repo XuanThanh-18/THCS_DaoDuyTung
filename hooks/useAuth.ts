@@ -1,28 +1,42 @@
-'use client';
+// hooks/useAuth.ts
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+
+interface AuthUser {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
 export function useAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem('admin_token');
-    if (token) {
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-    }
-    setIsLoading(false);
+    // Check auth qua API (cookie được gửi tự động)
+    fetch("/api/auth/me")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        setUser(data?.user ?? null);
+      })
+      .catch(() => setUser(null))
+      .finally(() => setIsLoading(false));
   }, []);
 
-  const logout = () => {
-    localStorage.removeItem('admin_token');
-    setIsAuthenticated(false);
-    router.push('/admin/login');
+  const logout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    router.push("/admin/login");
   };
 
-  return { isAuthenticated, isLoading, logout };
+  return {
+    user,
+    isAuthenticated: !!user,
+    isLoading,
+    logout,
+  };
 }
