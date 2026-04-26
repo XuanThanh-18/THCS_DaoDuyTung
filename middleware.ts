@@ -1,19 +1,20 @@
 // middleware.ts
+// FIX C2: Bảo vệ /admin/register — chỉ SUPERADMIN đã login mới có thể truy cập
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "./lib/auth";
 
-// Routes trong /admin/* không cần đăng nhập
-const PUBLIC_ADMIN_ROUTES = ["/admin/login", "/admin/register"];
+// Chỉ /admin/login là public — /admin/register yêu cầu SUPERADMIN
+const FULLY_PUBLIC_ADMIN = ["/admin/login"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Bỏ qua các trang public (login, register)
-  if (PUBLIC_ADMIN_ROUTES.some((route) => pathname.startsWith(route))) {
+  // Bỏ qua login page
+  if (FULLY_PUBLIC_ADMIN.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
-  // Bảo vệ toàn bộ /admin/*
+  // Tất cả /admin/* cần phải có token hợp lệ
   if (pathname.startsWith("/admin")) {
     const token = request.cookies.get("admin_token")?.value;
 
@@ -23,12 +24,19 @@ export async function middleware(request: NextRequest) {
 
     const payload = await verifyToken(token);
     if (!payload) {
-      // Token hết hạn hoặc không hợp lệ → xóa cookie + redirect
       const response = NextResponse.redirect(
         new URL("/admin/login", request.url),
       );
       response.cookies.delete("admin_token");
       return response;
+    }
+
+    // FIX C2: /admin/register chỉ dành cho SUPERADMIN
+    if (
+      pathname.startsWith("/admin/register") &&
+      payload.role !== "SUPERADMIN"
+    ) {
+      return NextResponse.redirect(new URL("/admin/dashboard", request.url));
     }
   }
 

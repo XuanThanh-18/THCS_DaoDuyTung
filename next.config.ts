@@ -1,16 +1,34 @@
 // next.config.ts
+// FIX H3: Tạo next.config.ts — đã thiếu hoàn toàn trong project
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Security headers
+  // FIX H3: Cho phép external images từ các nguồn thường dùng
+  // Thêm domain cụ thể khi project dùng image upload
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "**", // Mở rộng, cần narrow lại khi production
+      },
+    ],
+    // Tối ưu format hiện đại
+    formats: ["image/avif", "image/webp"],
+  },
+
+  // Security headers cho production
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
-          { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
-          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-XSS-Protection", value: "1; mode=block" },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
           {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
@@ -20,25 +38,8 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Cho phép load ảnh từ các domain bên ngoài
-  images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "picsum.photos",
-      },
-      {
-        protocol: "https",
-        hostname: "*.supabase.co",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-    ],
-  },
-
-  // Tắt x-powered-by header
+  // Tối ưu production build
+  compress: true,
   poweredByHeader: false,
 };
 

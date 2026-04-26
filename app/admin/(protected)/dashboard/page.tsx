@@ -1,7 +1,4 @@
 // app/admin/dashboard/page.tsx
-// FIX M1: Thêm redirect khi getCurrentUser() trả về null
-// (Middleware đã xử lý, nhưng defense-in-depth tốt hơn)
-import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
 import { formatDateVN } from "@/lib/format";
@@ -17,9 +14,8 @@ import {
   Clock,
   Plus,
 } from "lucide-react";
-import type { Metadata } from "next";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Dashboard | Admin THCS Đào Duy Tùng",
 };
 
@@ -76,112 +72,99 @@ async function getStats() {
   };
 }
 
-const STAT_CARDS = [
-  {
-    key: "posts" as const,
-    label: "Bài viết",
-    href: "/admin/posts",
-    icon: FileText,
-    color: "text-blue-600 bg-blue-50",
-  },
-  {
-    key: "events" as const,
-    label: "Sự kiện",
-    href: "/admin/events",
-    icon: Calendar,
-    color: "text-purple-600 bg-purple-50",
-  },
-  {
-    key: "announcements" as const,
-    label: "Thông báo",
-    href: "/admin/announcements",
-    icon: Bell,
-    color: "text-amber-600 bg-amber-50",
-  },
-  {
-    key: "messages" as const,
-    label: "Tin nhắn",
-    href: "/admin/messages",
-    icon: Mail,
-    color: "text-green-600 bg-green-50",
-  },
-];
-
 export default async function DashboardPage() {
-  // FIX M1: Defense-in-depth redirect nếu user null
   const user = await getCurrentUser();
-  if (!user) redirect("/admin/login");
-
   const stats = await getStats();
 
-  const statValues = {
-    posts: stats.totalPosts,
-    events: stats.totalEvents,
-    announcements: stats.totalAnnouncements,
-    messages: stats.unreadMessages,
-  };
+  const statCards = [
+    {
+      label: "Bài viết",
+      value: stats.totalPosts,
+      sub: `${stats.publishedPosts} đã đăng`,
+      icon: FileText,
+      color: "bg-blue-50 text-blue-600",
+      href: "/admin/posts",
+    },
+    {
+      label: "Sự kiện",
+      value: stats.totalEvents,
+      sub: "Tổng số sự kiện",
+      icon: Calendar,
+      color: "bg-purple-50 text-purple-600",
+      href: "/admin/events",
+    },
+    {
+      label: "Thông báo",
+      value: stats.totalAnnouncements,
+      sub: "Tổng số thông báo",
+      icon: Bell,
+      color: "bg-orange-50 text-orange-600",
+      href: "/admin/announcements",
+    },
+    {
+      label: "Tin nhắn mới",
+      value: stats.unreadMessages,
+      sub: "Chưa đọc",
+      icon: Mail,
+      color: "bg-green-50 text-green-600",
+      href: "/admin/contact-messages",
+    },
+  ];
 
   return (
     <div className="space-y-8">
-      {/* Welcome */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            Xin chào, {user.email.split("@")[0]}! 👋
-          </h1>
+          <h1 className="text-2xl font-bold text-slate-900">Tổng quan</h1>
           <p className="text-slate-500 text-sm mt-1">
-            Đây là tổng quan hệ thống quản trị nhà trường
+            Chào mừng trở lại,{" "}
+            <span className="font-medium">{user?.email}</span>
           </p>
         </div>
         <Link
           href="/admin/posts/new"
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
         >
           <Plus size={16} />
-          Tạo bài viết
+          Thêm bài viết
         </Link>
       </div>
 
       {/* Stat Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {STAT_CARDS.map((card) => {
+        {statCards.map((card) => {
           const Icon = card.icon;
           return (
             <Link
-              key={card.key}
+              key={card.label}
               href={card.href}
-              className="bg-white rounded-xl border border-slate-200 p-5 hover:shadow-md transition-shadow"
+              className="bg-white rounded-xl border border-slate-200 p-5 hover:border-slate-300 hover:shadow-sm transition-all"
             >
-              <div className={cn("p-2 rounded-lg w-fit mb-3", card.color)}>
-                <Icon size={20} />
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">{card.label}</p>
+                  <p className="text-3xl font-bold text-slate-900 mt-1">
+                    {card.value}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-1">{card.sub}</p>
+                </div>
+                <div className={cn("p-2.5 rounded-lg", card.color)}>
+                  <Icon size={20} />
+                </div>
               </div>
-              <p className="text-2xl font-bold text-slate-900">
-                {statValues[card.key]}
-              </p>
-              <p className="text-sm text-slate-500 mt-0.5">{card.label}</p>
-              {card.key === "posts" && (
-                <p className="text-xs text-slate-400 mt-1 flex items-center gap-1">
-                  <TrendingUp size={11} />
-                  {stats.publishedPosts} đã đăng
-                </p>
-              )}
-              {card.key === "messages" && stats.unreadMessages > 0 && (
-                <span className="inline-block text-xs bg-red-100 text-red-700 px-1.5 py-0.5 rounded-full mt-1">
-                  {stats.unreadMessages} chưa đọc
-                </span>
-              )}
             </Link>
           );
         })}
       </div>
 
-      {/* Recent Content */}
+      {/* Recent content */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Posts */}
+        {/* Recent posts */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <FileText size={16} className="text-slate-400" />
+              <TrendingUp size={16} className="text-slate-400" />
               <h2 className="text-sm font-semibold text-slate-700">
                 Bài viết gần đây
               </h2>
@@ -226,7 +209,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Upcoming Events */}
+        {/* Upcoming events */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
           <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
             <div className="flex items-center gap-2">
@@ -245,7 +228,7 @@ export default async function DashboardPage() {
           <div className="divide-y divide-slate-50">
             {stats.recentEvents.length === 0 ? (
               <p className="text-sm text-slate-400 text-center py-8">
-                Không có sự kiện nào sắp diễn ra
+                Không có sự kiện sắp tới
               </p>
             ) : (
               stats.recentEvents.map((event) => (
@@ -253,13 +236,20 @@ export default async function DashboardPage() {
                   key={event.id}
                   className="px-5 py-3 flex items-center gap-3"
                 >
+                  <div className="w-10 h-10 bg-purple-50 rounded-lg flex flex-col items-center justify-center shrink-0">
+                    <span className="text-xs font-bold text-purple-600 leading-none">
+                      {new Date(event.eventDate).getDate()}
+                    </span>
+                    <span className="text-[10px] text-purple-400 leading-none mt-0.5">
+                      Th{new Date(event.eventDate).getMonth() + 1}
+                    </span>
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-slate-800 truncate">
                       {event.title}
                     </p>
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      {formatDateVN(event.eventDate)}
-                      {event.location && ` · ${event.location}`}
+                    <p className="text-xs text-slate-400 mt-0.5 truncate">
+                      {event.location ?? "Chưa có địa điểm"}
                     </p>
                   </div>
                 </div>
