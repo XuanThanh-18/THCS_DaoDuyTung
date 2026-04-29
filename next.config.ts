@@ -1,22 +1,34 @@
-// next.config.ts
-// FIX H3: Tạo next.config.ts — đã thiếu hoàn toàn trong project
+// next.config.ts — FIXED VERSION
+// Fix: remotePatterns dùng specific hostname thay vì wildcard "**"
+// Next.js 15 không hỗ trợ double-star hostname wildcard
+
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // FIX H3: Cho phép external images từ các nguồn thường dùng
-  // Thêm domain cụ thể khi project dùng image upload
   images: {
     remotePatterns: [
+      // Supabase Storage
       {
         protocol: "https",
-        hostname: "**", // Mở rộng, cần narrow lại khi production
+        hostname: "*.supabase.co",
       },
+      // Unsplash (thường dùng cho placeholder)
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      // Google Storage (nếu dùng Firebase)
+      {
+        protocol: "https",
+        hostname: "*.googleapis.com",
+      },
+      // Thêm domain khác khi cần:
+      // { protocol: "https", hostname: "your-cdn.com" },
     ],
-    // Tối ưu format hiện đại
     formats: ["image/avif", "image/webp"],
   },
 
-  // Security headers cho production
+  // Security headers
   async headers() {
     return [
       {
@@ -29,18 +41,17 @@ const nextConfig: NextConfig = {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },
-          {
-            key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
-          },
         ],
       },
     ];
   },
 
-  // Tối ưu production build
   compress: true,
   poweredByHeader: false,
+
+  // Fix: Cho phép build kể cả có lỗi TypeScript nhỏ (tắt nếu muốn strict)
+  // typescript: { ignoreBuildErrors: true },
+  // eslint: { ignoreDuringBuilds: true },
 };
 
 export default nextConfig;

@@ -1,25 +1,29 @@
-// middleware.ts
-// FIX C2: Bảo vệ /admin/register — chỉ SUPERADMIN đã login mới có thể truy cập
+// middleware.ts — FIXED VERSION
+// Fix: Thêm "/admin" vào matcher để bắt cả root admin route
+// Fix: Bảo vệ /admin/register chỉ cho SUPERADMIN
+
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "./lib/auth";
 
-// Chỉ /admin/login là public — /admin/register yêu cầu SUPERADMIN
-const FULLY_PUBLIC_ADMIN = ["/admin/login"];
+// Các route trong /admin/* KHÔNG cần auth
+const PUBLIC_ADMIN_PATHS = ["/admin/login"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Bỏ qua login page
-  if (FULLY_PUBLIC_ADMIN.some((route) => pathname.startsWith(route))) {
+  // Bỏ qua các public paths
+  if (PUBLIC_ADMIN_PATHS.some((route) => pathname.startsWith(route))) {
     return NextResponse.next();
   }
 
-  // Tất cả /admin/* cần phải có token hợp lệ
-  if (pathname.startsWith("/admin")) {
+  // Bảo vệ tất cả /admin và /admin/*
+  if (pathname === "/admin" || pathname.startsWith("/admin/")) {
     const token = request.cookies.get("admin_token")?.value;
 
     if (!token) {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      const loginUrl = new URL("/admin/login", request.url);
+      loginUrl.searchParams.set("from", pathname);
+      return NextResponse.redirect(loginUrl);
     }
 
     const payload = await verifyToken(token);
@@ -31,7 +35,7 @@ export async function middleware(request: NextRequest) {
       return response;
     }
 
-    // FIX C2: /admin/register chỉ dành cho SUPERADMIN
+    // /admin/register chỉ dành cho SUPERADMIN
     if (
       pathname.startsWith("/admin/register") &&
       payload.role !== "SUPERADMIN"
@@ -44,5 +48,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/admin/:path*"],
+  // Fix: Thêm "/admin" để bắt route không có path
+  matcher: ["/admin", "/admin/:path*"],
 };

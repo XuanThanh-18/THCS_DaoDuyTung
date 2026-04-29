@@ -1,14 +1,10 @@
+// lib/auth.ts — FIXED VERSION
+// Fix: Lazy check JWT_SECRET thay vì throw ở module scope
+// Lý do: throw ở module scope crash toàn bộ app khi import, kể cả trang public
+// Lazy check chỉ throw khi function thực sự được gọi
+
 import { jwtVerify, SignJWT, JWTPayload } from "jose";
 import { cookies } from "next/headers";
-
-// ── Fail fast nếu thiếu secret ──────────────────────────
-if (!process.env.JWT_SECRET) {
-  throw new Error(
-    "[auth] JWT_SECRET chưa được set. Thêm vào file .env và khởi động lại server.",
-  );
-}
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET);
 
 const COOKIE_NAME = "admin_token";
 const TOKEN_EXPIRY = "7d";
@@ -21,19 +17,32 @@ export interface AuthPayload extends JWTPayload {
   exp?: number;
 }
 
+// ── Lazy secret getter — chỉ throw khi được gọi ──────────
+function getSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error(
+      "[auth] JWT_SECRET chưa được set. Thêm vào file .env.local:\n" +
+        "JWT_SECRET=<random-string-32-chars>\n" +
+        "Tạo bằng: openssl rand -base64 32",
+    );
+  }
+  return new TextEncoder().encode(secret);
+}
+
 // ── Sign token ───────────────────────────────────────────
 export async function signToken(payload: AuthPayload): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime(TOKEN_EXPIRY)
-    .sign(secret);
+    .sign(getSecret());
 }
 
 // ── Verify token ─────────────────────────────────────────
 export async function verifyToken(token: string): Promise<AuthPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as AuthPayload;
   } catch {
     return null;
