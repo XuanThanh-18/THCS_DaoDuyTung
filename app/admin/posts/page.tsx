@@ -21,15 +21,5 @@ export default async function AdminPostsPage() {
     },
   });
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900">Bài viết</h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Quản lý toàn bộ bài viết và tin tức
-        </p>
-      </div>
-      <ContentTable rows={posts} type="post" publicBasePath="/news" />
-    </div>
-  );
+  return <ContentTable rows={posts} type="post" publicBasePath="/news" />;
 }

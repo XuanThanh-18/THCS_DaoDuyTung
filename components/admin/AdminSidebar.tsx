@@ -4,29 +4,49 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { ADMIN_NAV_ITEMS, SCHOOL } from "@/lib/constants";
+import { SCHOOL } from "@/lib/constants";
+import Image from "next/image";
 import {
   LayoutDashboard,
   FileText,
   Calendar,
   Bell,
   Files,
-  Image,
+  Image as ImageIcon,
   Mail,
   LogOut,
   ChevronRight,
+  Shield,
 } from "lucide-react";
 import { useState } from "react";
 
-const ICON_MAP: Record<string, React.ElementType> = {
-  LayoutDashboard,
-  FileText,
-  Calendar,
-  Bell,
-  Files,
-  Image,
-  Mail,
-};
+const NAV_SECTIONS = [
+  {
+    label: "Tổng quan",
+    items: [
+      { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
+    ],
+  },
+  {
+    label: "Nội dung",
+    items: [
+      { label: "Bài viết", href: "/admin/posts", icon: FileText },
+      { label: "Sự kiện", href: "/admin/events", icon: Calendar },
+      { label: "Thông báo", href: "/admin/announcements", icon: Bell },
+    ],
+  },
+  {
+    label: "Tài nguyên",
+    items: [
+      { label: "Tài liệu", href: "/admin/documents", icon: Files },
+      { label: "Thư viện ảnh", href: "/admin/gallery", icon: ImageIcon },
+    ],
+  },
+  {
+    label: "Liên hệ",
+    items: [{ label: "Tin nhắn", href: "/admin/contact-messages", icon: Mail }],
+  },
+];
 
 interface AdminSidebarProps {
   userEmail: string;
@@ -50,63 +70,93 @@ export default function AdminSidebar({
     }
   };
 
+  const isActive = (href: string) =>
+    pathname === href ||
+    (href !== "/admin/dashboard" && pathname.startsWith(href));
+
   return (
-    <aside className="w-64 bg-slate-900 text-white flex flex-col shrink-0 min-h-screen">
-      {/* Logo */}
-      <div className="px-6 py-7 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-sm shrink-0">
-            {SCHOOL.code}
-          </div>
-          <div className="min-w-0">
-            <p className="font-semibold text-sm leading-tight truncate">
-              {SCHOOL.shortName}
-            </p>
-            <p className="text-xs text-slate-400 mt-0.5">Admin Panel</p>
-          </div>
+    <aside className="w-60 bg-white border-r border-slate-200 flex flex-col shrink-0 min-h-screen">
+      {/* ── Brand ── */}
+      <div className="h-16 px-5 flex items-center gap-3 border-b border-slate-100">
+        <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+          <span className="text-white text-xs font-bold">DDT</span>
+        </div>
+        <div className="min-w-0">
+          <p className="text-sm font-semibold text-slate-800 truncate leading-tight">
+            {SCHOOL.shortName}
+          </p>
+          <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wide">
+            Admin Panel
+          </p>
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {ADMIN_NAV_ITEMS.map((item) => {
-          const Icon = ICON_MAP[item.icon] ?? FileText;
-          const isActive =
-            pathname === item.href || pathname.startsWith(item.href + "/");
-
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all",
-                isActive
-                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                  : "text-slate-400 hover:text-white hover:bg-white/10",
-              )}
-            >
-              <Icon size={18} className="shrink-0" />
-              <span className="flex-1 truncate">{item.label}</span>
-              {isActive && (
-                <ChevronRight size={14} className="shrink-0 opacity-60" />
-              )}
-            </Link>
-          );
-        })}
+      {/* ── Nav ── */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-6">
+        {NAV_SECTIONS.map((section) => (
+          <div key={section.label}>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
+              {section.label}
+            </p>
+            <ul className="space-y-0.5">
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const active = isActive(item.href);
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                        active
+                          ? "bg-blue-50 text-blue-700"
+                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                      )}
+                    >
+                      <Icon
+                        size={16}
+                        className={active ? "text-blue-600" : "text-slate-400"}
+                      />
+                      {item.label}
+                      {active && (
+                        <ChevronRight
+                          size={14}
+                          className="ml-auto text-blue-400"
+                        />
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        ))}
       </nav>
 
-      {/* User & Logout */}
-      <div className="px-3 py-4 border-t border-white/10 space-y-1">
-        <div className="px-3 py-2 rounded-lg bg-white/5">
-          <p className="text-xs text-slate-400 truncate">{userEmail}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{userRole}</p>
+      {/* ── User info + Logout ── */}
+      <div className="border-t border-slate-100 p-3">
+        <div className="flex items-center gap-3 px-2 py-2 mb-1">
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+            {userEmail.charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-slate-700 truncate">
+              {userEmail.split("@")[0]}
+            </p>
+            <div className="flex items-center gap-1 mt-0.5">
+              <Shield size={10} className="text-blue-500" />
+              <span className="text-[10px] text-blue-600 font-medium">
+                {userRole}
+              </span>
+            </div>
+          </div>
         </div>
         <button
           onClick={handleLogout}
           disabled={loggingOut}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-red-400 hover:bg-red-400/10 transition-all disabled:opacity-50"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-500 hover:bg-red-50 hover:text-red-600 transition-all"
         >
-          <LogOut size={18} className="shrink-0" />
+          <LogOut size={15} />
           {loggingOut ? "Đang đăng xuất..." : "Đăng xuất"}
         </button>
       </div>
