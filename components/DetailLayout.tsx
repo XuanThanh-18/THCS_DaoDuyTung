@@ -15,6 +15,7 @@ import {
   Download,
 } from "lucide-react";
 import { formatDateLong } from "@/lib/format";
+import Link from "next/link";
 
 interface DetailLayoutProps {
   title: string;
@@ -28,6 +29,10 @@ interface DetailLayoutProps {
   fileUrl?: string | null;
   fileType?: string | null;
   badge?: string;
+  type?: string;
+  backLink?: string;
+  backText?: string;
+  category?: string;
   children?: React.ReactNode;
 }
 
@@ -43,6 +48,10 @@ export default function DetailLayout({
   fileUrl,
   fileType,
   badge,
+  type,
+  backLink,
+  backText,
+  category,
   children,
 }: DetailLayoutProps) {
   return (
@@ -50,11 +59,21 @@ export default function DetailLayout({
       <Navbar />
 
       <article className="pt-32 pb-24 px-6 md:px-12 max-w-4xl mx-auto">
+        {/* Back Link */}
+        {backLink && (
+          <Link
+            href={backLink}
+            className="inline-flex items-center gap-2 text-primary hover:text-primary/80 font-bold mb-6 transition-colors"
+          >
+            ← {backText || "Quay lại"}
+          </Link>
+        )}
+
         {/* Header */}
         <header className="mb-12">
-          {badge && (
+          {(badge || category) && (
             <span className="inline-block text-primary font-bold tracking-widest text-xs uppercase mb-4">
-              {badge}
+              {category || badge}
             </span>
           )}
 
