@@ -656,14 +656,14 @@ export default function AboutPage() {
                   strokeWidth={1.5}
                 />
                 <blockquote className="text-2xl md:text-3xl font-headline font-bold text-on-surface italic leading-snug mb-8">
-                  "Giáo dục không phải là việc đổ đầy một cái bình, mà là thắp
-                  sáng một ngọn lửa."
+                  &ldquo;Giáo dục không phải là việc đổ đầy một cái bình, mà là
+                  thắp sáng một ngọn lửa.&rdquo;
                 </blockquote>
                 <p className="text-on-surface-variant text-base font-body leading-relaxed mb-8">
                   Tại THCS Đào Duy Tùng, chúng tôi tin rằng mỗi đứa trẻ là một
                   hạt mầm tiềm năng. Với tôn chỉ{" "}
                   <em className="text-primary not-italic font-semibold">
-                    "Thực học – Thực làm – Thực giá trị"
+                    &ldquo;Thực học – Thực làm – Thực giá trị&rdquo;
                   </em>
                   , chúng tôi cam kết tạo ra môi trường học tập nơi mỗi học sinh
                   không chỉ tiếp nhận kiến thức mà còn phát triển kỹ năng sống

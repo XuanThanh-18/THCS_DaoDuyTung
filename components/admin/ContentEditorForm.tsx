@@ -820,7 +820,7 @@ export default function ContentEditorForm({
             </p>
             <ul className="text-xs text-blue-600 space-y-1 list-disc list-inside">
               <li>Dùng toolbar để định dạng nhanh</li>
-              <li>Bấm "Xem trước" để kiểm tra</li>
+              <li>Bấm &ldquo;Xem trước&rdquo; để kiểm tra</li>
               <li>Lưu nháp trước khi xuất bản</li>
               <li>Ảnh: dán URL trực tiếp vào editor</li>
             </ul>
