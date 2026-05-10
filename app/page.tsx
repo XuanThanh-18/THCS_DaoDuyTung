@@ -18,7 +18,7 @@ export default function Home() {
 
       {/* About Section on Home */}
       <section className="py-24 bg-surface overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-8 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="relative">
             <div className="relative z-10 grid grid-cols-2 gap-4">
               <div className="space-y-4">
@@ -94,7 +94,7 @@ export default function Home() {
 
       {/* Gallery Section */}
       <section className="py-24 bg-surface-container-low overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 mb-12">
+        <div className="max-w-[1600px] mx-auto px-4 md:px-8 mb-12">
           <h2 className="text-3xl md:text-4xl font-headline font-bold">
             Góc nhìn THCS Đào Duy Tùng
           </h2>

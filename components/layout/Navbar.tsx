@@ -33,48 +33,55 @@ export default function Navbar() {
   return (
     <nav
       className={cn(
-        "sticky top-0 w-full z-50 transition-all duration-300 h-20 flex items-center px-6 md:px-12",
+        "sticky top-0 w-full z-50 transition-all duration-300 h-24 flex items-center px-6 md:px-12",
         isScrolled || isMobileMenuOpen
           ? "bg-white/98 backdrop-blur-md shadow-md border-b-2 border-slate-200"
           : "bg-white/90 backdrop-blur-sm",
       )}
     >
-      <div className="max-w-7xl mx-auto w-full flex justify-between items-center">
-        {/* Left side: Logo + Name + Menu */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-3">
+      <div className="max-w-[1600px] mx-auto w-full flex justify-between items-center">
+        {/* Left side: Logo */}
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center gap-5">
             <Image
               src="/images/logo/Logo.jpg"
               alt="Logo trường"
-              width={50}
-              height={50}
+              width={85}
+              height={85}
               className="object-contain"
             />
-            <span
-              className={cn("text-2xl font-headline font-bold hidden sm:block")}
-            >
-              THCS Đào Duy Tùng
-            </span>
+            <div className="flex flex-col gap-1 hidden sm:flex pt-1">
+              <span className="text-base font-bold uppercase tracking-wide text-primary">
+                ỦY BAN NHÂN DÂN XÃ ĐÔNG ANH
+              </span>
+              <span className="text-2xl font-headline font-bold text-primary">
+                Trường THCS Đào Duy Tùng
+              </span>
+              <span className="text-base font-medium italic text-[#450367]">
+                Thắp sáng niềm tin - Gieo mầm khát vọng
+              </span>
+            </div>
           </Link>
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={cn(
-                  "font-body text-base font-medium transition-colors hover:text-primary",
-                  pathname === link.href
-                    ? "text-primary font-bold border-b-2 border-primary"
-                    : isScrolled
-                      ? "text-slate-700"
-                      : "text-slate-900",
-                )}
-              >
-                {link.name}
-              </Link>
-            ))}
-          </div>
+        </div>
+
+        {/* Center: Desktop Nav */}
+        <div className="hidden md:flex items-center gap-8">
+          {navLinks.map((link) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={cn(
+                "font-body text-xl font-medium transition-colors hover:text-primary",
+                pathname === link.href
+                  ? "text-primary font-bold border-b-2 border-primary"
+                  : isScrolled
+                    ? "text-slate-700"
+                    : "text-slate-900",
+              )}
+            >
+              {link.name}
+            </Link>
+          ))}
         </div>
 
         {/* Right side: Search + Social Links + Mobile Menu */}

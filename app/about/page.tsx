@@ -103,24 +103,13 @@ export default function AboutPage() {
         {/* Background */}
         <div className="absolute inset-0 z-0">
           <img
-            src="https://picsum.photos/seed/about-hero/1920/1080"
+            src="/images/banners/le-khanh-thanh.JPG"
             alt="Trường THCS Đào Duy Tùng"
             className="w-full h-full object-cover scale-105"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
         </div>
-
-        {/* Floating badge top-right */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="absolute top-8 right-8 hidden md:flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 text-white px-4 py-2 rounded-full text-xs font-bold tracking-wider"
-        >
-          <Star size={12} className="text-yellow-400 fill-yellow-400" />
-          Trường chất lượng cao Đông Anh
-        </motion.div>
 
         {/* Main hero text — bottom-left editorial style */}
         <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 pb-20">
